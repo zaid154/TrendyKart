@@ -1,0 +1,83 @@
+﻿@model TrendyKart.Models.Customer
+@{
+    ViewData["Title"] = "Customer Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Customer Details</h4>
+
+            <a asp-action="Customers" class="btn btn-sm btn-outline-dark">
+                Back
+            </a>
+        </div>
+        <!-- Main Content Box -->
+        <div class="border rounded p-4">
+            <!-- Customer Info -->
+            <div class="mb-4">
+                <p><strong>Name:</strong> @Model.FullName</p>
+                <p><strong>Email:</strong> @Model.Email</p>
+                <p><strong>Phone:</strong> @Model.Phone</p>
+                <p>
+                    <strong>Status:</strong>
+                    @(Model.IsBlocked ? "Blocked" : "Active")
+                </p>
+            </div>
+            <hr class="my-4" />
+            <!-- Order History -->
+            <h5 class="mb-3">Order History</h5>
+            @if (Model.Orders != null && Model.Orders.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Products</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
+                            {
+                                <tr>
+                                    <td>#@order.OrderID</td>
+                                    <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                                    <td>@order.Status</td>
+                                    <td>₹@order.TotalAmount</td>
+                                    <td>
+                                        @if (order.OrderItems != null && order.OrderItems.Any())
+                                        {
+                                            <ul class="mb-0 ps-3">
+                                                @foreach (var item in order.OrderItems)
+                                                {
+                                                    <li>
+                                                        @item.Product?.Name
+                                                        (Qty: @item.Quantity)
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span>No Items</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No orders found for this customer.</p>
+            }
+        </div>
+
+    </div>
+</div>

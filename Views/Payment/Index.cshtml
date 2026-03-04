@@ -1,0 +1,110 @@
+@model IEnumerable<TrendyKart.Models.Payment>
+@{
+    ViewData["Title"] = "Manage Payments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Payment Management</h4>
+
+            <a asp-action="Dashboard"
+               class="btn btn-sm btn-outline-dark">
+                Back
+            </a>
+        </div>
+        <!-- Content Box -->
+        <div class="border rounded p-4">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center">
+                    <thead >
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Order ID</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Method</th>
+                            <th style="width:280px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model)
+                        {
+                            <tr>
+                                <td>@payment.PaymentID</td>
+                                <td>#@payment.OrderID</td>
+                                <td>₹@payment.Amount</td>
+                                <!-- STATUS BADGE -->
+                                <td>
+                                    <span class="badge bg-@(
+                                        payment.PaymentStatus == "Paid" ? "success" :
+                                        payment.PaymentStatus == "Failed" ? "danger" :
+                                        payment.PaymentStatus == "Refund Initiated" ? "info" :
+                                        payment.PaymentStatus == "Refund Completed" ? "success" :
+                                        payment.PaymentStatus == "Cancelled" ? "secondary" :
+                                        "warning")">
+                                        @payment.PaymentStatus
+                                    </span>
+                                </td>
+                                <td>@payment.PaymentMethod</td>
+                                <td>
+                                    @if (payment.PaymentStatus == "Pending")
+                                    {
+                                        <form asp-controller="Admin"
+                                              asp-action="UpdatePaymentStatus"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="paymentId" value="@payment.PaymentID" />
+                                            <input type="hidden" name="status" value="Paid" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    onclick="return confirm('Mark this payment as Paid?')">
+                                                Mark Paid
+                                            </button>
+                                        </form>
+                                        <form asp-controller="Admin"
+                                              asp-action="UpdatePaymentStatus"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="paymentId" value="@payment.PaymentID" />
+                                            <input type="hidden" name="status" value="Failed" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Mark this payment as Failed?')">
+                                                Fail
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (payment.PaymentStatus == "Refund Initiated")
+                                    {
+                                        <form asp-controller="Admin"
+                                              asp-action="CompleteRefund"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="paymentId" value="@payment.PaymentID" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    onclick="return confirm('Complete this refund?')">
+                                                Complete Refund
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fw-semibold">
+                                            No Action Required
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

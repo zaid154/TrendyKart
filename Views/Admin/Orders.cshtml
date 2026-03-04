@@ -1,0 +1,134 @@
+@model List<TrendyKart.Models.Order>
+@{
+    ViewData["Title"] = "Orders Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Orders Management</h4>
+            <a asp-action="Dashboard" class="btn btn-sm btn-outline-dark">
+                Back
+            </a>
+        </div>
+        <!-- Content Box -->
+        <div class="p-3">
+            <div class="table-responsive">
+                <table class="table custom-table align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th style="width:300px;">Items</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th style="width:300px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <!-- ORDER ID -->
+                                <td><strong>#@order.OrderID</strong></td>
+                                <!-- CUSTOMER -->
+                                <td>@order.Customer?.FullName</td>
+                                <!-- ITEMS -->
+                                <td class="text-start">
+                                    @if (order.OrderItems != null && order.OrderItems.Any())
+                                    {
+                                        foreach (var item in order.OrderItems)
+                                        {
+                                            <div class="mb-2">
+                                                <strong>@item.ProductName</strong><br />
+                                                <small>Qty: @item.Quantity</small>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No Items</span>
+                                    }
+                                </td>
+                                <!-- STATUS -->
+                                <td>
+                                    <span class="badge bg-@(
+                                        order.Status == "Delivered" ? "success" :
+                                        order.Status == "Shipped" ? "primary" :
+                                        order.Status == "Cancelled" ? "danger" :
+                                        "warning")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <!-- PAYMENT -->
+                                <td>
+                                    <span class="badge bg-@(
+                                        order.Payment?.PaymentStatus == "Paid" ? "success" :
+                                        order.Payment?.PaymentStatus == "Failed" ? "danger" :
+                                        order.Payment?.PaymentStatus == "Refund Initiated" ? "info" :
+                                        order.Payment?.PaymentStatus == "Refund Completed" ? "success" :
+                                        order.Payment?.PaymentStatus == "Cancelled" ? "secondary" :
+                                        "warning")">
+                                        @(order.Payment?.PaymentStatus ?? "Pending")
+                                    </span>
+                                </td>
+                                <!-- ACTION -->
+                                <td>
+                                    @if (order.Status == "Order Placed")
+                                    {
+                                        <form asp-controller="Admin"
+                                              asp-action="UpdateOrderStatus"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Shipped" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                Mark Shipped
+                                            </button>
+                                        </form>
+                                        <form asp-controller="Admin"
+                                              asp-action="UpdateOrderStatus"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Cancelled" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (order.Status == "Shipped")
+                                    {
+                                        <form asp-controller="Admin"
+                                              asp-action="UpdateOrderStatus"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.OrderID" />
+                                            <input type="hidden" name="status" value="Delivered" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success">
+                                                Mark Delivered
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fw-semibold">
+                                            No Action Required
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

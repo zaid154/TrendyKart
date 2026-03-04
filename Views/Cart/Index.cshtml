@@ -1,0 +1,111 @@
+﻿@model IEnumerable<TrendyKart.Models.Cart>
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-lg-10">
+        <h4 class="mb-4">Shopping Cart</h4>
+        @if (!Model.Any())
+        {
+            <div class="border rounded p-4 text-center">
+                <h6>Your cart is empty.</h6>
+
+                <a asp-controller="Product"
+                   asp-action="Index"
+                   class="btn btn-dark mt-3">
+                    Continue Shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="border rounded p-4">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:100px;">Image</th>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th style="width:150px;">Quantity</th>
+                                <th>Total</th>
+                                <th style="width:120px;">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <!-- PRODUCT IMAGE -->
+                                    <td>
+                                        <img src="@(item.Product?.ImageUrl ?? "/images/no-image.png")"
+                                             class="img-fluid"
+                                             style="max-height:80px; object-fit:contain;" />
+                                    </td>
+                                    <!-- PRODUCT NAME -->
+                                    <td>
+                                        <strong>@item.Product?.Name</strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            Category: @item.Product?.Category
+                                        </small>
+                                    </td>
+                                    <!-- PRICE -->
+                                    <td>
+                                        ₹@(item.Product?.Price ?? 0)
+                                    </td>
+                                    <!-- QUANTITY -->
+                                    <td>
+                                        <form method="post"
+                                              asp-controller="Cart"
+                                              asp-action="Update">
+                                            <input type="hidden"
+                                                   name="CartID"
+                                                   value="@item.CartID" />
+                                            <input type="number"
+                                                   name="Quantity"
+                                                   value="@item.Quantity"
+                                                   min="1"
+                                                   max="@item.Product?.Stock"
+                                                   class="form-control"
+                                                   onchange="this.form.submit()" />
+                                        </form>
+                                    </td>
+                                    <!-- TOTAL -->
+                                    <td>
+                                        ₹@((item.Product?.Price ?? 0) * item.Quantity)
+                                    </td>
+                                    <!-- REMOVE -->
+                                    <td>
+                                        <form method="post"
+                                              asp-controller="Cart"
+                                              asp-action="Remove">
+                                            <input type="hidden"
+                                                   name="CartID"
+                                                   value="@item.CartID" />
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- SUMMARY -->
+                <div class="text-end mt-4">
+                    <h5>Total: ₹@ViewBag.CartTotal</h5>
+                    <a asp-controller="Cart"
+                       asp-action="Checkout"
+                       class="btn btn-dark mt-2">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

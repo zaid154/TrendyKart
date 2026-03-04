@@ -1,0 +1,113 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="mb-3">
+            <h5 class="mb-1">Admin Dashboard</h5>
+            <small class="text-muted">Welcome Admin</small>
+        </div>
+        <!-- Main Navigation Box -->
+        <div class="border rounded p-3 mb-3">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <a asp-controller="Admin" asp-action="AddProduct"
+                       class="admin-action-card">
+                        Add Product
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Admin" asp-action="Products"
+                       class="admin-action-card">
+                        Manage Product 
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Admin" asp-action="Customers"
+                       class="admin-action-card">
+                        Manage Users
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Admin" asp-action="Orders"
+                       class="admin-action-card">
+                        Manage Orders
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Admin" asp-action="Payments"
+                       class="admin-action-card">
+                        Manage Payments
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Admin" asp-action="FeedbackList"
+                       class="admin-action-card">
+                        Manage Feedback
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Analytics Section -->
+        <div class="border rounded p-3">
+            <div class="row text-center mb-3">
+                <div class="col-md-4">
+                    <small class="text-muted">Total Orders</small>
+                    <h5 class="mb-0">@ViewBag.TotalOrders</h5>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">Total Customers</small>
+                    <h5 class="mb-0">@ViewBag.TotalCustomers</h5>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">Total Revenue</small>
+                    <h5 class="mb-0">₹ @ViewBag.TotalRevenue</h5>
+                </div>
+            </div>
+            <hr class="my-3" />
+            <!-- Rating Chart -->
+            <div>
+                <small class="text-muted fw-semibold">
+                    Customer Rating
+                </small>
+                <canvas id="ratingChart" height="70"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ratingData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.RatingData));
+    var labels = [];
+    var counts = [];
+    for (var i = 1; i <= 5; i++) {
+        var found = ratingData.find(x => x.Rating === i);
+        labels.push(i + " Star");
+        counts.push(found ? found.Count : 0);
+    }
+    var ctx = document.getElementById('ratingChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ratings',
+                data: counts,
+                backgroundColor: [
+                    '#dc3545',
+                    '#fd7e14',
+                    '#ffc107',
+                    '#28a745',
+                    '#007bff'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, precision: 0 } }
+        }
+    });
+</script>

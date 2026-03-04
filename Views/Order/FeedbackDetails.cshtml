@@ -1,0 +1,74 @@
+﻿@model TrendyKart.Models.OrderFeedback
+@{
+    ViewData["Title"] = "Feedback Conversation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="border rounded p-4">
+            <h4 class="mb-4">Feedback Conversation</h4>
+            <p><strong>Order ID:</strong> #@Model.OrderId</p>
+            <p><strong>Rating:</strong> ⭐ @Model.Rating</p>
+            <hr class="my-4" />
+            <h6 class="mb-3">Conversation</h6>
+            @if (Model.Messages != null && Model.Messages.Any())
+            {
+                foreach (var msg in Model.Messages.OrderBy(m => m.SentAt))
+                {
+                    if (msg.SenderRole == "Customer")
+                    {
+                        <div class="mb-3">
+                            <div class="border rounded p-3 bg-light">
+                                <strong>You:</strong><br />
+                                @msg.Message
+                                <br />
+                                <small class="text-muted">
+                                    @msg.SentAt.ToString("dd MMM yyyy hh:mm tt")
+                                </small>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3 text-end">
+                            <div class="border rounded p-3 d-inline-block text-start">
+                                <strong>Admin:</strong><br />
+                                @msg.Message
+                                <br />
+                                <small class="text-muted">
+                                    @msg.SentAt.ToString("dd MMM yyyy hh:mm tt")
+                                </small>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="text-muted">
+                    No messages yet.
+                </div>
+            }
+            <hr class="my-4" />
+            <h6 class="mb-3">Send Message</h6>
+            <form asp-action="SendCustomerMessage" method="post">
+                <input type="hidden" name="feedbackId" value="@Model.Id" />
+                <div class="mb-3">
+                    <textarea name="message"
+                              class="form-control"
+                              rows="3"
+                              required></textarea>
+                </div>
+                <button type="submit" class="btn btn-dark">
+                    Send
+                </button>
+            </form>
+        </div>
+        <div class="mt-4">
+            <a asp-action="OrderHistory"
+               class="btn btn-outline-dark">
+                Back to Orders
+            </a>
+        </div>
+    </div>
+</div>

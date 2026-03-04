@@ -1,0 +1,227 @@
+﻿@model IEnumerable<TrendyKart.Models.Product>
+@{
+    ViewData["Title"] = "Products";
+    var categories = ViewBag.Categories as List<string>;
+    var cartItems = ViewBag.CartItems as List<TrendyKart.Models.Cart>;
+}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-11">
+        <h4 class="mb-4">Products</h4>
+        <!-- SEARCH + FILTER -->
+        <form id="filterForm"
+              method="get"
+              asp-action="Index"
+              class="row g-2 mb-4">
+            <div class="col-md-4">
+                <input type="text"
+                       name="search"
+                       value="@Context.Request.Query["search"]"
+                       class="form-control"
+                       placeholder="Search products..."
+                       oninput="autoSubmit()" />
+            </div>
+            <div class="col-md-3">
+                <select name="category"
+                        class="form-select"
+                        onchange="autoSubmit()">
+                    <option value="">All Categories</option>
+                    @if (categories != null)
+                    {
+                        foreach (var cat in categories)
+                        {
+                            <option value="@cat"
+                                selected="@(Context.Request.Query["category"] == cat ? "selected" : null)">
+                                @cat
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+        </form>
+        <!-- PRODUCT GRID -->
+        <div class="row">
+            @foreach (var product in Model)
+            {
+                var cartItem = cartItems?.FirstOrDefault(c => c.ProductID == product.ProductID);
+                <div class="col-md-4 mb-4">
+                    <div class="card p-3 h-100 d-flex flex-column">
+                        <!-- IMAGE -->
+                        <a asp-controller="Product"
+                           asp-action="Details"
+                           asp-route-id="@product.ProductID"
+                           class="text-center mb-3">
+                            <img src="@product.ImageUrl"
+                                 class="img-fluid"
+                                 style="max-height:200px; object-fit:contain;" />
+                        </a>
+                        <!-- CONTENT -->
+                        <div class="flex-grow-1">
+                            <h6>
+                                <a asp-controller="Product"
+                                   asp-action="Details"
+                                   asp-route-id="@product.ProductID"
+                                   class="text-dark text-decoration-none">
+                                    @product.Name
+                                </a>
+                            </h6>
+                            <p class="text-muted small mb-1">
+                                @product.Category
+                            </p>
+                            <p class="small">
+                                @(product.Description != null && product.Description.Length > 80
+                                    ? product.Description.Substring(0, 80) + "..."
+                                    : product.Description)
+                            </p>
+                            <h6 class="fw-semibold mb-1">
+                                ₹@product.Price
+                            </h6>
+                            <p class="small @(product.Stock > 0 ? "text-success" : "text-danger")">
+                                @(product.Stock > 0
+                                    ? $"In Stock: {product.Stock}"
+                                    : "Out of Stock")
+                            </p>
+                        </div>
+                        <!-- BUTTON AREA -->
+                        <div class="mt-2">
+                            @if (product.Stock > 0)
+                            {
+                                if (cartItem == null)
+                                {
+                                    <form class="ajax-cart-form"
+                                          data-url="/Cart/AddToCart">
+                                        <input type="hidden"
+                                               name="ProductID"
+                                               value="@product.ProductID" />
+                                        <input type="hidden"
+                                               name="Quantity"
+                                               value="1" />
+                                        <button type="submit"
+                                                class="btn btn-dark w-100">
+                                            Add to Cart
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <form class="ajax-cart-form"
+                                              data-url="/Cart/Update">
+                                            <input type="hidden"
+                                                   name="CartID"
+                                                   value="@cartItem.CartID" />
+                                            <input type="hidden"
+                                                   name="Quantity"
+                                                   value="@(cartItem.Quantity - 1)" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">
+                                                -
+                                            </button>
+                                        </form>
+                                        <span class="fw-semibold">
+                                            @cartItem.Quantity
+                                        </span>
+                                        <form class="ajax-cart-form"
+                                              data-url="/Cart/Update">
+                                            <input type="hidden"
+                                                   name="CartID"
+                                                   value="@cartItem.CartID" />
+                                            <input type="hidden"
+                                                   name="Quantity"
+                                                   value="@(cartItem.Quantity + 1)" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success">
+                                                +
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary w-100" disabled>
+                                    Out of Stock
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <!-- PAGINATION -->
+        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@(ViewBag.CurrentPage - 1)"
+                           asp-route-search="@Context.Request.Query["search"]"
+                           asp-route-category="@Context.Request.Query["category"]">
+                            Previous
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@i"
+                               asp-route-search="@Context.Request.Query["search"]"
+                               asp-route-category="@Context.Request.Query["category"]">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@(ViewBag.CurrentPage + 1)"
+                           asp-route-search="@Context.Request.Query["search"]"
+                           asp-route-category="@Context.Request.Query["category"]">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+<!-- JAVASCRIPT -->
+<script>
+
+    // auto seactch
+    let typingTimer;
+    function autoSubmit() {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function () {
+            document.getElementById("filterForm").submit();
+        }, 500);
+    }
+    document.addEventListener("submit", async function (e) {
+        if (e.target.classList.contains("ajax-cart-form")) {
+            e.preventDefault();
+            const form = e.target;
+            const url = form.getAttribute("data-url");
+            const formData = new FormData(form);
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Something went wrong");
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    });
+
+</script>

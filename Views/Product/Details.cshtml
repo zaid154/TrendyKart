@@ -1,0 +1,139 @@
+﻿@model TrendyKart.Models.Product
+<div class="row justify-content-center mt-5">
+    <div class="col-md-9">
+        <div class="border rounded p-4">
+            <div class="row align-items-center">
+                <!-- IMAGE -->
+                <div class="col-md-5 text-center">
+                    <img src="@Model.ImageUrl"
+                         class="img-fluid"
+                         style="max-height:300px; object-fit:contain;" />
+                </div>
+                <!-- DETAILS -->
+                <div class="col-md-7">
+                    <h4>@Model.Name</h4>
+                    <p class="text-muted">@Model.Category</p>
+                    <p>@Model.Description</p>
+                    <h5 class="fw-semibold">₹@Model.Price</h5>
+                    <p class="@(Model.Stock > 0 ? "text-success" : "text-danger")">
+                        @(Model.Stock > 0 ? $"In Stock: {Model.Stock}" : "Out of Stock")
+                    </p>
+                    @if (Model.Stock > 0)
+                    {
+                        <input type="hidden" id="productId" value="@Model.ProductID" />
+                        <!--  IF CART HAS ITEM -->
+                        @if (ViewBag.CartQuantity > 0)
+                        {
+                            <div id="qtySection" class="mt-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <button type="button"
+                                            class="btn btn-outline-danger btn-sm"
+                                            onclick="changeQty(-1)">
+                                        -
+                                    </button>
+                                    <input type="number"
+                                           id="qtyInput"
+                                           value="@ViewBag.CartQuantity"
+                                           min="1"
+                                           max="@Model.Stock"
+                                           class="form-control text-center"
+                                           style="width:80px;" />
+                                    <button type="button"
+                                            class="btn btn-outline-success btn-sm"
+                                            onclick="changeQty(1)">
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                            <button id="addBtn"
+                                    class="btn btn-dark mt-3 d-none">
+                                Add To Cart
+                            </button>
+                        }
+                        else
+                        {
+                            <!-- IF NOT IN CART -->
+                            <button id="addBtn"
+                                    class="btn btn-dark mt-3"
+                                    onclick="firstAdd()">
+                                Add To Cart
+                            </button>
+                            <div id="qtySection"
+                                 class="mt-3 d-none">
+                                <div class="d-flex align-items-center gap-3">
+                                    <button type="button"
+                                            class="btn btn-outline-danger btn-sm"
+                                            onclick="changeQty(-1)">
+                                        -
+                                    </button>
+                                    <input type="number"
+                                           id="qtyInput"
+                                           value="1"
+                                           min="1"
+                                           max="@Model.Stock"
+                                           class="form-control text-center"
+                                           style="width:80px;" />
+
+                                    <button type="button"
+                                            class="btn btn-outline-success btn-sm"
+                                            onclick="changeQty(1)">
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    <a asp-action="Index"
+                       class="btn btn-outline-dark mt-3">
+                        Back To Products
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+async function firstAdd() {
+    let productId = document.getElementById("productId").value;
+    const formData = new FormData();
+    formData.append("productId", productId);
+    formData.append("quantity", 1);
+    await fetch("/Cart/AddToCart", {
+        method: "POST",
+        body: formData
+    });
+    document.getElementById("addBtn").classList.add("d-none");
+    document.getElementById("qtySection").classList.remove("d-none");
+}
+async function changeQty(change) {
+    let input = document.getElementById("qtyInput");
+    let current = parseInt(input.value);
+    let max = parseInt(input.max);
+    let productId = document.getElementById("productId").value;
+    let newValue = current + change;
+    // Remove if goes below 1
+    if (newValue < 1) {
+        await fetch("/Cart/RemoveFromCart", {
+            method: "POST",
+            body: new URLSearchParams({ productId: productId })
+        });
+        document.getElementById("qtySection").classList.add("d-none");
+        document.getElementById("addBtn").classList.remove("d-none");
+        input.value = 1;
+        return;
+    }
+    if (newValue > max)
+        return;
+    input.value = newValue;
+    const formData = new FormData();
+    formData.append("productId", productId);
+    formData.append("quantity", newValue);
+    await fetch("/Cart/AddToCart", {
+        method: "POST",
+        body: formData
+    });
+}
+
+</script>

@@ -1,0 +1,95 @@
+﻿@model TrendyKart.Models.OrderFeedback
+@{
+    ViewData["Title"] = "Feedback Conversation";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Feedback Conversation</h4>
+
+            <a asp-action="FeedbackList"
+               class="btn btn-sm btn-outline-dark">
+                Back
+            </a>
+        </div>
+        <!-- Main Content Box -->
+        <div class="border rounded p-4">
+            <!-- Order Info -->
+            <div class="mb-4">
+                <p><strong>Order ID:</strong> #@Model.OrderId</p>
+                <p><strong>Customer ID:</strong> @Model.CustomerId</p>
+                <p><strong>Rating:</strong> ⭐ @Model.Rating</p>
+            </div>
+            <hr class="my-4" />
+            <!-- Chat Box -->
+            <div class="border rounded p-3 mb-4"
+                 style="height:400px; overflow-y:auto;"
+                 id="chatBox">
+                @if (Model.Messages != null && Model.Messages.Any())
+                {
+                    foreach (var msg in Model.Messages.OrderBy(m => m.SentAt))
+                    {
+                        if (msg.SenderRole == "Customer")
+                        {
+                            <div class="d-flex justify-content-start mb-3">
+                                <div class="bg-light p-2 rounded"
+                                     style="max-width:70%;">
+                                    <strong>User:</strong><br />
+                                    @msg.Message
+                                    <br />
+                                    <small class="text-muted">
+                                        @msg.SentAt.ToString("dd MMM yyyy hh:mm tt")
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex justify-content-end mb-3">
+                                <div class="bg-dark text-white p-2 rounded"
+                                     style="max-width:70%;">
+                                    <strong>Admin:</strong><br />
+                                    @msg.Message
+                                    <br />
+                                    <small class="text-light">
+                                        @msg.SentAt.ToString("dd MMM yyyy hh:mm tt")
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        No conversation yet.
+                    </div>
+                }
+
+            </div>
+            <!-- Reply Form -->
+            <form asp-action="SendAdminMessage" method="post">
+                <input type="hidden" name="feedbackId" value="@Model.Id" />
+                <div class="mb-3">
+                    <textarea name="message"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Type your reply..."
+                              required></textarea>
+                </div>
+                <button type="submit" class="btn btn-dark">
+                    Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto scroll to bottom
+    var chatBox = document.getElementById("chatBox");
+    if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>

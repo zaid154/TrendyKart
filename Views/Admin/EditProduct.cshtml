@@ -1,0 +1,55 @@
+﻿@model TrendyKart.Models.Product
+@{
+    ViewData["Title"] = "Edit Product";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Edit Product</h4>
+
+            <a asp-action="Products" class="btn btn-sm btn-outline-dark">
+                Back
+            </a>
+        </div>
+        <!-- Content Box -->
+        <div class="border rounded p-4">
+            <form asp-action="EditProduct" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="ProductID" />
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Category" class="form-label"></label>
+                    <input asp-for="Category" class="form-control" />
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Price" class="form-label"></label>
+                        <input asp-for="Price" type="number" step="0.01" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Stock" class="form-label"></label>
+                        <input asp-for="Stock" type="number" class="form-control" />
+                    </div>
+                </div>
+                <hr class="my-4" />
+                <div class="mb-3">
+                    <label asp-for="ImageFile" class="form-label">
+                        Change Image (optional)
+                    </label>
+                    <input asp-for="ImageFile" type="file" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-dark">
+                    Update Product
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

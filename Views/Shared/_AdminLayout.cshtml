@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="~/Favicon.png" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Admin | TrendyKart</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Icons -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold fs-4"
+               asp-controller="Admin"
+               asp-action="Dashboard">
+                TrendyKart Admin
+            </a>
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#adminNavbar"
+                    aria-controls="adminNavbar"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Navbar Content -->
+            <div class="collapse navbar-collapse" id="adminNavbar">
+                <!-- Left Menu -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           asp-controller="Admin"
+                           asp-action="Dashboard">
+                            Dashboard
+                        </a>
+                    </li>
+                </ul>
+                <!-- Right Section -->
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Admin Name -->
+                    <span class="fw-semibold text-dark">
+                        Hello, @User.Identity?.Name
+                    </span>
+                    <a asp-controller="Account"
+                       asp-action="Logout"
+                       class="btn btn-sm btn-danger">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- main content-->
+    <main class="container flex-fill my-4">
+        @RenderBody()
+    </main>
+    <!-- Footer -->
+    <footer class="mt-auto py-3 border-top bg-light">
+        <div class="container text-center">
+            <p class="mb-0">
+                © TrendyKart Admin Panel | All rights reserved
+            </p>
+        </div>
+    </footer>
+    <!--Scripts -->
+    <!-- Bootstrap JS -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Page Scripts -->
+    @RenderSection("Scripts", required: false)
+
+</body>
+</html>

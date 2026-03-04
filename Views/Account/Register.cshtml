@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Register";
+}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="border rounded p-4">
+            <h5 class="text-center mb-4">Create Account</h5>
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.Error
+                </div>
+            }
+            <form method="post" asp-action="Register">
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text"
+                           name="FullName"
+                           class="form-control"
+                           required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email"
+                           name="Email"
+                           class="form-control"
+                           required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text"
+                           name="Phone"
+                           class="form-control"
+                           required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password"
+                           name="Password"
+                           class="form-control"
+                           required />
+                </div>
+                <button type="submit"
+                        class="btn btn-dark w-100">
+                    Create Account
+                </button>
+            </form>
+            <div class="text-center mt-3">
+                <span class="text-muted">Already have an account?</span>
+                <a asp-controller="Account"
+                   asp-action="Login"
+                   class="text-decoration-none ms-1">
+                    Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

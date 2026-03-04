@@ -1,0 +1,123 @@
+@model TrendyKart.Models.Order
+@{
+    ViewData["Title"] = "Order Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row justify-content-center mt-1">
+    <div class="col-md-10">
+        <h4 class="mb-4">Order Details</h4>
+        <!-- ORDER SUMMARY -->
+        <div class="border rounded p-4 mb-4">
+            <div class="row">
+                <!-- LEFT SIDE -->
+                <div class="col-md-6">
+                    <p><strong>Order ID:</strong> #@Model.OrderID</p>
+                    <p><strong>Order Date:</strong> @Model.OrderDate.ToString("dd-MMM-yyyy")</p>
+                    <p>
+                        <strong>Status:</strong>
+                        <span class="badge bg-@(
+                            Model.Status == "Delivered" ? "success" :
+                            Model.Status == "Shipped" ? "primary" :
+                            Model.Status == "Cancelled" ? "danger" :
+                            "warning")">
+                            @Model.Status
+                        </span>
+                    </p>
+                </div>
+                <!-- RIGHT SIDE -->
+                <div class="col-md-6">
+                    <p><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                    @{
+                        var paymentStatus = Model.Payment?.PaymentStatus;
+                    }
+                    <p>
+                        <strong>Payment Status:</strong>
+
+                        @if (paymentStatus == "Paid")
+                        {
+                            <span class="badge bg-success">Paid</span>
+                        }
+                        else if (paymentStatus == "Pending")
+                        {
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        }
+                        else if (paymentStatus == "Failed")
+                        {
+                            <span class="badge bg-danger">Failed</span>
+                        }
+                        else if (paymentStatus == "Cancelled")
+                        {
+                            <span class="badge bg-secondary">Cancelled</span>
+                        }
+                        else if (paymentStatus == "Refund Initiated")
+                        {
+                            <span class="badge bg-info text-dark">Refund Initiated</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-dark">Not Available</span>
+                        }
+                    </p>
+                    <p><strong>Total Amount:</strong> ₹@Model.TotalAmount</p>
+                </div>
+            </div>
+            <hr class="my-4" />
+            <!-- SHIPPING ADDRESS -->
+            <h6 class="mb-3">Shipping Address</h6>
+
+            <div class="border rounded p-3">
+                <p class="mb-1">@Model.ShippingAddress , @Model.City , @Model.State , @Model.Pincode,@Model.Country</p>
+            </div>
+        </div>
+        <!-- ORDERED ITEMS -->
+        <h5 class="mb-3">Ordered Items</h5>
+
+        <div class="border rounded p-3">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:100px;">Image</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.OrderItems != null && Model.OrderItems.Any())
+                        {
+                            foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@(item.Product?.ImageUrl ?? "/images/no-image.png")"
+                                             class="img-fluid"
+                                             style="max-height:80px; object-fit:contain;" />
+                                    </td>
+                                    <td>@item.Product?.Name</td>
+                                    <td>₹@item.Price</td>
+                                    <td>@item.Quantity</td>
+                                    <td>₹@(item.Price * item.Quantity)</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5">No items found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- BACK BUTTON -->
+        <div class="mt-4">
+            <a asp-action="OrderHistory"
+               class="btn btn-outline-dark">
+                Back to My Orders
+            </a>
+        </div>
+    </div>
+</div>

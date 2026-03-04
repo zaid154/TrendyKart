@@ -1,0 +1,96 @@
+﻿@model TrendyKart.Models.OrderFeedback
+@{
+    ViewData["Title"] = "Feedback Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Feedback Conversation</h4>
+
+            <a asp-action="OrderHistory"
+               class="btn btn-outline-dark">
+                Back to Orders
+            </a>
+        </div>
+        <div class="border rounded p-4">
+            <!-- Rating -->
+            <div class="mb-4">
+                <strong>Rating:</strong>
+                <div class="mt-2">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Model.Rating)
+                        {
+                            <span style="color: gold;">★</span>
+                        }
+                        else
+                        {
+                            <span style="color: #ccc;">★</span>
+                        }
+                    }
+                </div>
+            </div>
+            <hr class="my-4" />
+            <!-- Chat Messages -->
+            <div class="mb-4"
+                 style="max-height:400px; overflow-y:auto;">
+                @if (Model.Messages != null && Model.Messages.Any())
+                {
+                    foreach (var msg in Model.Messages.OrderBy(m => m.SentAt))
+                    {
+                        if (msg.SenderRole == "Customer")
+                        {
+                            <div class="text-end mb-3">
+                                <div class="d-inline-block border rounded p-3 bg-light text-start">
+                                    <strong>You:</strong><br />
+                                    @msg.Message
+                                </div>
+                                <div class="small text-muted">
+                                    @msg.SentAt.ToString("dd MMM yyyy hh:mm tt")
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-start mb-3">
+                                <div class="d-inline-block border rounded p-3 text-start">
+                                    <strong>Admin:</strong><br />
+                                    @msg.Message
+                                </div>
+                                <div class="small text-muted">
+                                    @msg.SentAt.ToString("dd MMM yyyy hh:mm tt")
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="text-muted">
+                        No replies yet.
+                    </div>
+                }
+            </div>
+            <hr class="my-4" />
+            <!-- Send Message -->
+            <h6 class="mb-3">Send Message</h6>
+            <form asp-action="SubmitFeedback" method="post">
+                <input type="hidden" name="orderId" value="@Model.OrderId" />
+                <input type="hidden" name="rating" value="@Model.Rating" />
+                <div class="mb-3">
+                    <textarea name="comment"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Type your message..."
+                              required></textarea>
+                </div>
+                <button type="submit"
+                        class="btn btn-dark">
+                    Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

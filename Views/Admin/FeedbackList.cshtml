@@ -1,0 +1,53 @@
+﻿@model List<TrendyKart.Models.OrderFeedback>
+@{
+    ViewData["Title"] = "All Feedback";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">All Feedback</h4>
+            <a asp-action="Dashboard"
+               class="btn btn-sm btn-outline-dark">
+                Back
+            </a>
+        </div>
+        <!-- Content Box -->
+        <div class="border rounded p-4">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer ID</th>
+                            <th>Rating</th>
+                            <th>Messages</th>
+                            <th style="width:120px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.OrderId</td>
+                                <td>@item.CustomerId</td>
+                                <td>⭐ @item.Rating</td>
+                                <td>
+                                    @(item.Messages != null ? item.Messages.Count() : 0)
+                                </td>
+                                <td>
+                                    <a asp-action="FeedbackDetails"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-dark">
+                                        Open
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

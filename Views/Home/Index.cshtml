@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+<!-- HERO -->
+<section class="py-4">
+    <div class="container text-center">
+        <h1 class="fw-bold mb-2">Welcome to TrendyKart</h1>
+        <p class="text-muted mb-3">
+            Shop quality products with secure checkout and smooth ordering.
+        </p>
+        <a asp-controller="Product"
+           asp-action="Index"
+           class="btn btn-primary px-4">
+            Shop Now
+        </a>
+    </div>
+</section>
+<!-- FEATURES -->
+<section class="py-4">
+    <div class="container">
+        <div class="row text-center g-3">
+
+            <div class="col-md-4">
+                <div class="p-3 border rounded">
+                    <h6 class="fw-semibold">Quality Products</h6>
+                    <p class="text-muted small mb-0">
+                        Trusted products with proper pricing.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 border rounded">
+                    <h6 class="fw-semibold">Secure System</h6>
+                    <p class="text-muted small mb-0">
+                        Safe login and protected transactions.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 border rounded">
+                    <h6 class="fw-semibold">Easy Ordering</h6>
+                    <p class="text-muted small mb-0">
+                        Add to cart and order in seconds.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

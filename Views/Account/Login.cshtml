@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+<div class="container d-flex justify-content-center align-items-center"
+     style="min-height: 75vh;">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="text-center fw-bold mb-3">Login</h5>
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger py-2">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger py-2">
+                    @ViewBag.Error
+                </div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success py-2">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            <form asp-action="Login" method="post">
+                <div class="mb-3">
+                    <input type="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="Email"
+                           required />
+                </div>
+                <div class="mb-3">
+                    <input type="password"
+                           name="password"
+                           class="form-control"
+                           placeholder="Password"
+                           required />
+                </div>
+                <button type="submit"
+                        class="btn btn-primary w-100 mb-3">
+                    Login
+                </button>
+            </form>
+            <!-- Secondary Actions -->
+            <div class="d-grid gap-2 mb-3">
+                <a asp-controller="Account"
+                   asp-action="Register"
+                   class="btn btn-outline-primary btn-sm">
+                    Create Account
+                </a>
+                <a asp-action="ForgotPassword"
+                   class="btn btn-outline-secondary btn-sm">
+                    Forgot Password?
+                </a>
+            </div>
+            <hr>
+            <a asp-controller="Account"
+               asp-action="GoogleLogin"
+               class="btn btn-dark w-100">
+                Continue with Google
+            </a>
+        </div>
+    </div>
+</div>

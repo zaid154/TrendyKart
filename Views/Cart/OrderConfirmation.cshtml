@@ -1,0 +1,59 @@
+﻿@model TrendyKart.Models.Order
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-7">
+        <div class="border rounded p-4">
+            <!-- Success Header -->
+            <div class="text-center mb-4">
+                <h4 class="text-success">Order Placed Successfully</h4>
+                <p class="text-muted mb-0">
+                    Thank you for shopping with TrendyKart.
+                </p>
+            </div>
+            <hr class="my-4" />
+            <!-- Order Details -->
+            <div class="mb-4">
+                <p><strong>Order ID:</strong> @Model.OrderID</p>
+                <p><strong>Order Date:</strong> @Model.OrderDate.ToString("dd MMM yyyy")</p>
+                <p>
+                    <strong>Status:</strong>
+                    <span class="badge bg-success">
+                        @Model.Status
+                    </span>
+                </p>
+                <p>
+                    <strong>Total Amount:</strong>
+                    <span class="fw-semibold">
+                        ₹@Model.TotalAmount.ToString("N2")
+                    </span>
+                </p>
+            </div>
+            <hr class="my-4" />
+            <!-- Shipping Details -->
+            <h6 class="mb-3">Shipping Address</h6>
+
+            <div class="border rounded p-3 mb-4">
+                <p class="mb-1">@Model.ShippingAddress</p>
+                <p class="mb-1">
+                    @Model.City, @Model.State - @Model.Pincode
+                </p>
+                <p class="mb-0">@Model.Country</p>
+            </div>
+            <!-- Buttons -->
+            <div class="d-flex justify-content-between">
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="btn btn-outline-dark">
+                    Continue Shopping
+                </a>
+                <a asp-controller="Order"
+                   asp-action="OrderHistory"
+                   class="btn btn-dark">
+                    View My Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
