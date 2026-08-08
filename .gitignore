@@ -1,5 +1,23 @@
+# Visual Studio / IDEs
 .vs/
-bin/
-obj/
+.vscode/
+.idea/
 *.user
 *.suo
+*.useros
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# Antigravity / Gemini AI workspace files
+.gemini/
+.antigravity/
+.agent/
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -4,6 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>cf9ceb15-af60-41d2-b37a-4885fae89b71</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -11,9 +12,14 @@
 		<Content Remove="Views\Admin\NewFolder\**" />
 		<EmbeddedResource Remove="Views\Admin\NewFolder\**" />
 		<None Remove="Views\Admin\NewFolder\**" />
+		<Compile Remove="TrendyKart.Tests\**" />
+		<Content Remove="TrendyKart.Tests\**" />
+		<EmbeddedResource Remove="TrendyKart.Tests\**" />
+		<None Remove="TrendyKart.Tests\**" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
 

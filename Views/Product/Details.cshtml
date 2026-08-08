@@ -1,139 +1,850 @@
-﻿@model TrendyKart.Models.Product
-<div class="row justify-content-center mt-5">
-    <div class="col-md-9">
-        <div class="border rounded p-4">
-            <div class="row align-items-center">
-                <!-- IMAGE -->
-                <div class="col-md-5 text-center">
-                    <img src="@Model.ImageUrl"
-                         class="img-fluid"
-                         style="max-height:300px; object-fit:contain;" />
-                </div>
-                <!-- DETAILS -->
-                <div class="col-md-7">
-                    <h4>@Model.Name</h4>
-                    <p class="text-muted">@Model.Category</p>
-                    <p>@Model.Description</p>
-                    <h5 class="fw-semibold">₹@Model.Price</h5>
-                    <p class="@(Model.Stock > 0 ? "text-success" : "text-danger")">
-                        @(Model.Stock > 0 ? $"In Stock: {Model.Stock}" : "Out of Stock")
-                    </p>
-                    @if (Model.Stock > 0)
-                    {
-                        <input type="hidden" id="productId" value="@Model.ProductID" />
-                        <!--  IF CART HAS ITEM -->
-                        @if (ViewBag.CartQuantity > 0)
-                        {
-                            <div id="qtySection" class="mt-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <button type="button"
-                                            class="btn btn-outline-danger btn-sm"
-                                            onclick="changeQty(-1)">
-                                        -
-                                    </button>
-                                    <input type="number"
-                                           id="qtyInput"
-                                           value="@ViewBag.CartQuantity"
-                                           min="1"
-                                           max="@Model.Stock"
-                                           class="form-control text-center"
-                                           style="width:80px;" />
-                                    <button type="button"
-                                            class="btn btn-outline-success btn-sm"
-                                            onclick="changeQty(1)">
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-                            <button id="addBtn"
-                                    class="btn btn-dark mt-3 d-none">
-                                Add To Cart
-                            </button>
-                        }
-                        else
-                        {
-                            <!-- IF NOT IN CART -->
-                            <button id="addBtn"
-                                    class="btn btn-dark mt-3"
-                                    onclick="firstAdd()">
-                                Add To Cart
-                            </button>
-                            <div id="qtySection"
-                                 class="mt-3 d-none">
-                                <div class="d-flex align-items-center gap-3">
-                                    <button type="button"
-                                            class="btn btn-outline-danger btn-sm"
-                                            onclick="changeQty(-1)">
-                                        -
-                                    </button>
-                                    <input type="number"
-                                           id="qtyInput"
-                                           value="1"
-                                           min="1"
-                                           max="@Model.Stock"
-                                           class="form-control text-center"
-                                           style="width:80px;" />
+@model TrendyKart.Models.Product
+@using System.Text.Json
+@using System.Web
+@using TrendyKart.Models
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "_StoreLayout";
 
-                                    <button type="button"
-                                            class="btn btn-outline-success btn-sm"
-                                            onclick="changeQty(1)">
-                                        +
-                                    </button>
-                                </div>
-                            </div>
+    var activeVariant = ViewBag.ActiveVariant as ProductVariant ?? Model.Variants.FirstOrDefault(v => v.IsDefault) ?? Model.Variants.FirstOrDefault();
+
+    var currentPrice = activeVariant != null ? activeVariant.Price : Model.Price;
+    var currentOldPrice = activeVariant != null ? activeVariant.OldPrice : Model.OldPrice;
+    var currentStock = activeVariant != null ? activeVariant.AvailableStock : Model.Stock;
+    var currentSku = activeVariant != null ? activeVariant.SKU : Model.SKU;
+
+    var availableColors = ViewBag.AvailableColors as IEnumerable<dynamic> ?? new List<dynamic>();
+    var availableStorage = ViewBag.AvailableStorage as List<string> ?? new List<string>();
+    var availableRAM = ViewBag.AvailableRAM as List<string> ?? new List<string>();
+
+    var reviews = ViewBag.Reviews as List<ProductReview> ?? new List<ProductReview>();
+    var relatedProducts = ViewBag.RelatedProducts as List<Product> ?? new List<Product>();
+
+    var primaryImage = (!string.IsNullOrEmpty(activeVariant?.ImageUrl) ? activeVariant.ImageUrl : (activeVariant?.MediaList?.FirstOrDefault()?.MediaUrl)) 
+                        ?? (!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "/uploads/demo/iphone-17-pro.png");
+}
+
+<style>
+    .figma-details-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding-left: clamp(1.25rem, 3.5vw, 3.5rem);
+        padding-right: clamp(1.25rem, 3.5vw, 3.5rem);
+    }
+    
+    /* Left Gallery */
+    .figma-gallery-thumb {
+        width: 80px;
+        height: 90px;
+        border-radius: 12px;
+        padding: 8px;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        object-fit: contain;
+    }
+    .figma-gallery-thumb.active, .figma-gallery-thumb:hover {
+        border-color: #000000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .figma-main-img-box {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 2.5rem;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border: 1px solid #f1f5f9;
+    }
+
+    /* Color Circles */
+    .figma-color-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 1px #cbd5e1;
+        transition: all 0.2s ease;
+    }
+    .figma-color-dot.active {
+        box-shadow: 0 0 0 2.5px #000000;
+        transform: scale(1.1);
+    }
+
+    /* Storage Pill Chips */
+    .figma-storage-chip {
+        height: 48px;
+        min-width: 100px;
+        padding: 0 24px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+    .figma-storage-chip:hover {
+        border-color: #000000;
+        color: #000000;
+    }
+    .figma-storage-chip.active {
+        border: 1.5px solid #000000;
+        color: #000000;
+        font-weight: 700;
+        background: #ffffff;
+    }
+
+    /* 6 Hardware Feature Cards Grid */
+    .figma-hw-card {
+        background: #f4f4f4;
+        border-radius: 12px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 72px;
+    }
+    .figma-hw-card i {
+        font-size: 22px;
+        color: #4b5563;
+        flex-shrink: 0;
+    }
+    .figma-hw-card .hw-label {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 2px;
+    }
+    .figma-hw-card .hw-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    /* Action Buttons */
+    .figma-btn-outline {
+        border: 1.5px solid #000000;
+        background: transparent;
+        color: #000000;
+        height: 56px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .figma-btn-outline:hover {
+        background: #f8fafc;
+        color: #000000;
+    }
+    .figma-btn-solid {
+        background: #000000;
+        color: #ffffff;
+        border: none;
+        height: 56px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .figma-btn-solid:hover {
+        background: #27272a;
+        color: #ffffff;
+    }
+
+    /* Details Specs Table */
+    .figma-specs-table-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
+    }
+    .figma-specs-table-row .label {
+        color: #64748b;
+        font-weight: 400;
+    }
+    .figma-specs-table-row .val {
+        color: #0f172a;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    /* Rating Summary Box */
+    .figma-rating-box {
+        background: #f8f8f8;
+        border-radius: 24px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+    }
+    .figma-rating-score {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #000000;
+        line-height: 1;
+    }
+</style>
+
+<div class="figma-details-container py-4">
+    
+    @* BREADCRUMB *@
+    <nav aria-label="breadcrumb" class="mb-4">
+        <div class="crumbs" style="font-size: 13px; color: #64748b;">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Home</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Catalog</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <a asp-controller="Product" asp-action="Index" asp-route-category="@Model.Category" class="text-decoration-none text-muted">@Model.Category</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <span class="fw-bold text-dark">@Model.Name</span>
+        </div>
+    </nav>
+
+    @* ===== TOP HERO SECTION: GALLERY & MAIN PRODUCT DETAILS ===== *@
+    <div class="row g-4 g-lg-5 align-items-start mb-5">
+        
+        @* LEFT COLUMN: Thumbnails & Main Viewport *@
+        <div class="col-lg-6">
+            <div class="d-flex gap-3 align-items-start">
+                <div class="d-flex flex-column gap-3" id="galleryThumbList">
+                    @if (activeVariant != null && activeVariant.MediaList != null && activeVariant.MediaList.Any())
+                    {
+                        var mList = activeVariant.MediaList.OrderBy(m => m.SortOrder).Select(m => m.MediaUrl).ToList();
+                        for (int i = 0; i < mList.Count; i++)
+                        {
+                            var imgUrl = mList[i];
+                            <img src="@imgUrl" alt="View @(i+1)" class="figma-gallery-thumb @(i == 0 ? "active" : "")" onclick="switchMainImg('@imgUrl', this)" />
                         }
                     }
-                    <a asp-action="Index"
-                       class="btn btn-outline-dark mt-3">
-                        Back To Products
-                    </a>
+                    else
+                    {
+                        <img src="/uploads/products/iphone17_black.png" alt="Black View" class="figma-gallery-thumb active" onclick="switchMainImg('/uploads/products/iphone17_black.png', this)" />
+                        <img src="/uploads/products/iphone17_natural.png" alt="Natural View" class="figma-gallery-thumb" onclick="switchMainImg('/uploads/products/iphone17_natural.png', this)" />
+                        <img src="/uploads/products/iphone17_blue.png" alt="Blue View" class="figma-gallery-thumb" onclick="switchMainImg('/uploads/products/iphone17_blue.png', this)" />
+                        <img src="/uploads/products/iphone17_gold.png" alt="Gold View" class="figma-gallery-thumb" onclick="switchMainImg('/uploads/products/iphone17_gold.png', this)" />
+                    }
+                </div>
+                <div class="figma-main-img-box flex-grow-1">
+                    <img id="mainDisplayImg" src="@primaryImage" alt="@Model.Name" style="max-height: 440px; max-width: 100%; object-fit: contain; transition: opacity 0.25s ease;" />
+                </div>
+            </div>
+        </div>
+
+        @* RIGHT COLUMN: Info, Selectors, Hardware Spec Grid & Buttons *@
+        <div class="col-lg-6">
+            <h1 class="fw-bold text-dark mb-2" id="detailProductName" style="font-size: 2.5rem; letter-spacing: -1px; line-height: 1.15;">
+                @Model.Name
+            </h1>
+
+            <!-- Price Block -->
+            <div class="d-flex align-items-baseline gap-3 mb-4">
+                <span class="fw-bold text-dark" id="displayPriceText" style="font-size: 2rem;">$@((int)currentPrice)</span>
+                <span class="text-muted text-decoration-line-through fs-4" id="displayOldPriceText" style="display: @(currentOldPrice.HasValue && currentOldPrice.Value > currentPrice ? "inline" : "none");">
+                    $@((int)(currentOldPrice ?? 154900))
+                </span>
+            </div>
+
+            <!-- Color Selector -->
+            <div class="mb-4">
+                <span class="small text-muted fw-bold d-block mb-2.5" style="font-size: 14px;">Select color :</span>
+                <div class="d-flex gap-2.5 align-items-center" id="colorPickerList">
+                    @if (Model.Variants != null && Model.Variants.Any(v => !string.IsNullOrEmpty(v.ColorName)))
+                    {
+                        var distinctColors = Model.Variants.Where(v => v.IsActive && !string.IsNullOrEmpty(v.ColorName))
+                            .GroupBy(v => v.ColorName)
+                            .Select(g => g.First())
+                            .ToList();
+
+                        foreach (var col in distinctColors)
+                        {
+                            bool isCurrentColor = activeVariant != null && activeVariant.ColorName == col.ColorName;
+                            <span class="figma-color-dot @(isCurrentColor ? "active" : "")"
+                                  data-color="@col.ColorName"
+                                  style="background-color: @(string.IsNullOrEmpty(col.ColorHex) ? "#1f2022" : col.ColorHex);"
+                                  title="@col.ColorName"
+                                  onclick="onColorSelected('@col.ColorName', this)">
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="figma-color-dot active" data-color="Titanium Black" style="background-color: #1f2022;" title="Titanium Black" onclick="selectColorImage('/uploads/products/iphone17_black.png', this)"></span>
+                        <span class="figma-color-dot" data-color="Natural Titanium" style="background-color: #5e5768;" title="Natural Titanium" onclick="selectColorImage('/uploads/products/iphone17_natural.png', this)"></span>
+                        <span class="figma-color-dot" data-color="Titanium Blue" style="background-color: #203b54;" title="Titanium Blue" onclick="selectColorImage('/uploads/products/iphone17_blue.png', this)"></span>
+                        <span class="figma-color-dot" data-color="Titanium Gold" style="background-color: #d4af37;" title="Titanium Gold" onclick="selectColorImage('/uploads/products/iphone17_gold.png', this)"></span>
+                        <span class="figma-color-dot" data-color="Titanium White" style="background-color: #f0f1f3;" title="Titanium White" onclick="selectColorImage('/uploads/products/iphone17_white.png', this)"></span>
+                    }
+                </div>
+            </div>
+
+            <!-- Storage Chips -->
+            <div class="mb-4">
+                <div class="d-flex gap-2.5 flex-wrap align-items-center" id="storageChipList">
+                    @if (Model.Variants != null && Model.Variants.Any(v => !string.IsNullOrEmpty(v.Storage)))
+                    {
+                        var distinctStorage = Model.Variants.Where(v => v.IsActive && !string.IsNullOrEmpty(v.Storage))
+                            .Select(v => v.Storage)
+                            .Distinct()
+                            .ToList();
+
+                        foreach (var st in distinctStorage)
+                        {
+                            bool isCurrentStorage = activeVariant != null && activeVariant.Storage == st;
+                            <span class="figma-storage-chip @(isCurrentStorage ? "active" : "")"
+                                  data-storage="@st"
+                                  onclick="onStorageSelected('@st', this)">
+                                @st
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="figma-storage-chip" onclick="selectStorageDemo('128GB', 1199, this)">128GB</span>
+                        <span class="figma-storage-chip" onclick="selectStorageDemo('256GB', 1299, this)">256GB</span>
+                        <span class="figma-storage-chip" onclick="selectStorageDemo('512GB', 1399, this)">512GB</span>
+                        <span class="figma-storage-chip active" onclick="selectStorageDemo('1TB', 1499, this)">1TB</span>
+                    }
+                </div>
+            </div>
+
+            <!-- 6 Hardware Feature Cards Grid -->
+            <div class="row row-cols-2 row-cols-sm-3 g-3 mb-4">
+                <div class="col">
+                    <div class="figma-hw-card">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <div>
+                            <div class="hw-label">Screen size</div>
+                            <div class="hw-value">6.7"</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="figma-hw-card">
+                        <i class="fa-solid fa-microchip"></i>
+                        <div>
+                            <div class="hw-label">CPU</div>
+                            <div class="hw-value">Apple A16 Bionic</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="figma-hw-card">
+                        <i class="fa-solid fa-cubes"></i>
+                        <div>
+                            <div class="hw-label">Number of Cores</div>
+                            <div class="hw-value">6</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="figma-hw-card">
+                        <i class="fa-solid fa-camera"></i>
+                        <div>
+                            <div class="hw-label">Main camera</div>
+                            <div class="hw-value">48-12 -12 MP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="figma-hw-card">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <div>
+                            <div class="hw-label">Front-camera</div>
+                            <div class="hw-value">12 MP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="figma-hw-card">
+                        <i class="fa-solid fa-battery-full"></i>
+                        <div>
+                            <div class="hw-label">Battery capacity</div>
+                            <div class="hw-value">4323 mAh</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Short Description -->
+            <p class="text-muted small mb-4 lh-relaxed" style="font-size: 14px; color: #6c757d;">
+                Enhanced capabilities thanks to an enlarged display of 6.7 inches and work without recharging throughout the day. Incredible photos in weak, yes and in bright light using the new system with two cameras <a href="#details-section" class="text-dark fw-bold text-decoration-underline">more...</a>
+            </p>
+
+            <input type="hidden" id="selectedProductId" value="@Model.ProductID" />
+            <input type="hidden" id="selectedVariantId" value="@(activeVariant != null ? activeVariant.VariantID : 0)" />
+
+            <!-- Action Buttons -->
+            <div class="row g-3">
+                <div class="col-6">
+                    <button type="button" class="figma-btn-outline w-100" id="detailsWishlistBtn" onclick="toggleWishlistDetails()">
+                        <i class="fas fa-heart me-2 @(ViewBag.IsWishlisted == true ? "text-danger" : "")"></i>
+                        <span>Add to Wishlist</span>
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="figma-btn-solid w-100" id="mainAddToCartBtn" onclick="addVariantToCart()">
+                        Add to Card
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pincode Checker -->
+            <div class="mt-4 p-3 bg-light border rounded-3 d-flex align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-truck text-muted"></i>
+                    <span class="small text-muted fw-bold">Pincode Checker:</span>
+                </div>
+                <div class="input-group" style="max-width: 260px;">
+                    <input type="text" id="pincodeInput" class="form-control form-control-sm" placeholder="Enter Pincode" maxlength="6" />
+                    <button class="btn btn-dark btn-sm fw-bold px-3" onclick="checkPincodeServiceability()">Check</button>
+                </div>
+            </div>
+            <div id="pincodeResult" class="mt-2 small d-none"></div>
+
+        </div>
+    </div>
+
+    @* ===== DETAILS & SPECIFICATIONS SECTION ===== *@
+    <div id="details-section" class="pt-5 pb-5 border-top" style="margin-top: 4rem;">
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <h2 class="fw-bold text-dark mb-3" style="font-size: 1.75rem;">Details</h2>
+            <p class="text-muted mb-5 lh-relaxed" style="font-size: 14px; color: #6c757d;">
+                Just as a book is judged by its cover, the first thing you notice when you pick up a modern smartphone is the display. Nothing surprising, because advanced technologies allow you to practically level the display frames and cutouts for the front camera and speaker, leaving no room for bold design solutions. And how good that in such realities Apple everything is fine with displays. Both critics and mass consumers always praise the quality of the picture provided by the products of the Californian brand. And last year's 6.7-inch Retina panels, which had ProMotion, caused real admiration for many.
+            </p>
+
+            <h3 class="fw-bold text-dark mb-4" style="font-size: 1.25rem;">Screen</h3>
+            <div class="mb-4">
+                <div class="figma-specs-table-row">
+                    <span class="label">Screen diagonal</span>
+                    <span class="val">6.7"</span>
+                </div>
+                <div class="figma-specs-table-row">
+                    <span class="label">The screen resolution</span>
+                    <span class="val">2796×1290</span>
+                </div>
+                <div class="figma-specs-table-row">
+                    <span class="label">The screen refresh rate</span>
+                    <span class="val">120 Hz</span>
+                </div>
+                <div class="figma-specs-table-row">
+                    <span class="label">The pixel density</span>
+                    <span class="val">460 ppi</span>
+                </div>
+                <div class="figma-specs-table-row">
+                    <span class="label">Screen type</span>
+                    <span class="val">OLED</span>
+                </div>
+                <div class="figma-specs-table-row border-0">
+                    <span class="label">Additionally</span>
+                    <span class="val">Dynamic Island<br />Always-On display<br />HDR display<br />True Tone</span>
                 </div>
             </div>
         </div>
     </div>
+
+    @* ===== REVIEWS SECTION ===== *@
+    <div class="pt-5 pb-5 border-top" style="margin-top: 2rem;">
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <h2 class="fw-bold text-dark mb-4" style="font-size: 1.75rem;">Reviews</h2>
+            
+            <div class="row g-4 align-items-center mb-5">
+                <!-- Left: Rating Box -->
+                <div class="col-md-4">
+                    <div class="figma-rating-box">
+                        <div class="figma-rating-score mb-1">4.8</div>
+                        <div class="text-muted small mb-2" style="font-size: 13px;">of 125 reviews</div>
+                        <div class="text-warning fs-5">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: Rating Bars -->
+                <div class="col-md-8">
+                    <div class="d-flex flex-column gap-2" style="max-width: 600px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-dark fw-bold" style="width: 110px;">Excellent</span>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 85%;"></div>
+                            </div>
+                            <span class="small text-muted" style="width: 30px;">100</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-dark fw-bold" style="width: 110px;">Good</span>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 30%;"></div>
+                            </div>
+                            <span class="small text-muted" style="width: 30px;">11</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-dark fw-bold" style="width: 110px;">Average</span>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 10%;"></div>
+                            </div>
+                            <span class="small text-muted" style="width: 30px;">3</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-dark fw-bold" style="width: 110px;">Below Average</span>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 20%;"></div>
+                            </div>
+                            <span class="small text-muted" style="width: 30px;">8</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-dark fw-bold" style="width: 110px;">Poor</span>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 5%;"></div>
+                            </div>
+                            <span class="small text-muted" style="width: 30px;">1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Comment Input Box -->
+            <div class="mb-5">
+                <input type="text" class="form-control form-control-lg rounded-3 py-3 px-4 text-muted" style="font-size: 14px; background: #fafafa; border-color: #e2e8f0;" placeholder="Leave Comment" />
+            </div>
+
+            <!-- Reviews List -->
+            <div class="d-flex flex-column gap-4 mb-4">
+                <!-- Review 1 -->
+                <div class="p-4 bg-light rounded-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px;">GC</div>
+                            <div>
+                                <h4 class="fw-bold text-dark fs-6 mb-0">Grace Carey</h4>
+                                <div class="text-warning small">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="small text-muted">24 January,2023</span>
+                    </div>
+                    <p class="text-muted small mb-0 lh-relaxed" style="font-size: 14px; margin-left: 60px;">
+                        I was a bit nervous to be buying a secondhand phone from Amazon, but I couldn't be happier with my purchase!! I have a pre-paid data plan so I was worried that this phone wouldn't connect with my data plan, since the new phones don't have the physical Sim tray anymore, but couldn't have been easier! I bought an Unlocked black iPhone 14 Pro Max in excellent condition and everything is PERFECT. It was super easy to set up and the phone works and looks great. It truly was in excellent condition. Highly recommend!!!❤️
+                    </p>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="p-4 bg-light rounded-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px;">DK</div>
+                            <div>
+                                <h4 class="fw-bold text-dark fs-6 mb-0">Darcy King</h4>
+                                <div class="text-warning small">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="small text-muted">24 January,2023</span>
+                    </div>
+                    <p class="text-muted small mb-3 lh-relaxed" style="font-size: 14px; margin-left: 60px;">
+                        I might be the only one to say this but the camera is a little funky. Hoping it will change with a software update: otherwise, love this phone! Came in great condition
+                    </p>
+                    <div class="d-flex gap-2" style="margin-left: 60px;">
+                        <img src="/images/demo/iphone-hero.png" alt="Review Photo" class="rounded-3 border" style="width: 80px; height: 80px; object-fit: cover;" />
+                        <img src="/images/demo/airpods-max.png" alt="Review Photo" class="rounded-3 border" style="width: 80px; height: 80px; object-fit: cover;" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- View More Button -->
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-dark px-5 py-2.5 rounded-3 fw-bold" style="font-size: 14px;">
+                    View More <i class="fas fa-chevron-down ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @* ===== RELATED PRODUCTS SECTION ===== *@
+    <div class="pt-5 border-top" style="margin-top: 3rem;">
+        <h2 class="fw-bold text-dark mb-4" style="font-size: 1.75rem;">Related Products</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+            @if (relatedProducts.Any())
+            {
+                foreach (var item in relatedProducts)
+                {
+                    <div class="col">
+                        @await Html.PartialAsync("_ProductCard", item)
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <p class="text-muted small">No related products found.</p>
+                </div>
+            }
+        </div>
+    </div>
+
 </div>
 
+@section Scripts {
+@{
+    var variantsJsonData = JsonSerializer.Serialize(Model.Variants.Where(v => v.IsActive).Select(v => new {
+        variantId = v.VariantID,
+        variantName = v.VariantName,
+        colorName = v.ColorName,
+        colorHex = v.ColorHex,
+        storage = v.Storage,
+        price = (int)v.Price,
+        oldPrice = v.OldPrice.HasValue ? (int?)v.OldPrice.Value : null,
+        stock = v.AvailableStock,
+        sku = v.SKU,
+        imageUrl = (!string.IsNullOrEmpty(v.ImageUrl) ? v.ImageUrl : (v.MediaList != null && v.MediaList.Any() ? v.MediaList.First().MediaUrl : Model.ImageUrl)) ?? "/uploads/products/iphone17_black.png",
+        mediaFiles = v.MediaList != null && v.MediaList.Any() ? v.MediaList.OrderBy(m => m.SortOrder).Select(m => m.MediaUrl).ToList() : new List<string> { (!string.IsNullOrEmpty(v.ImageUrl) ? v.ImageUrl : Model.ImageUrl) ?? "/uploads/products/iphone17_black.png" }
+    }));
+}
 <script>
+    const allVariants = @Html.Raw(variantsJsonData);
+    let activeColor = "@(activeVariant?.ColorName ?? "")";
+    let activeStorage = "@(activeVariant?.Storage ?? "")";
 
-async function firstAdd() {
-    let productId = document.getElementById("productId").value;
-    const formData = new FormData();
-    formData.append("productId", productId);
-    formData.append("quantity", 1);
-    await fetch("/Cart/AddToCart", {
-        method: "POST",
-        body: formData
-    });
-    document.getElementById("addBtn").classList.add("d-none");
-    document.getElementById("qtySection").classList.remove("d-none");
-}
-async function changeQty(change) {
-    let input = document.getElementById("qtyInput");
-    let current = parseInt(input.value);
-    let max = parseInt(input.max);
-    let productId = document.getElementById("productId").value;
-    let newValue = current + change;
-    // Remove if goes below 1
-    if (newValue < 1) {
-        await fetch("/Cart/RemoveFromCart", {
-            method: "POST",
-            body: new URLSearchParams({ productId: productId })
-        });
-        document.getElementById("qtySection").classList.add("d-none");
-        document.getElementById("addBtn").classList.remove("d-none");
-        input.value = 1;
-        return;
+    function switchMainImg(url, el) {
+        document.querySelectorAll('.figma-gallery-thumb').forEach(t => t.classList.remove('active'));
+        if (el) el.classList.add('active');
+        
+        const mainImg = document.getElementById('mainDisplayImg');
+        if (mainImg) {
+            mainImg.style.opacity = '0.3';
+            setTimeout(() => {
+                mainImg.src = url;
+                mainImg.style.opacity = '1';
+            }, 120);
+        }
     }
-    if (newValue > max)
-        return;
-    input.value = newValue;
-    const formData = new FormData();
-    formData.append("productId", productId);
-    formData.append("quantity", newValue);
-    await fetch("/Cart/AddToCart", {
-        method: "POST",
-        body: formData
-    });
-}
 
+    function selectColorImage(url, el) {
+        document.querySelectorAll('.figma-color-dot').forEach(d => d.classList.remove('active'));
+        if (el) el.classList.add('active');
+        switchMainImg(url, null);
+    }
+
+    function selectStorageDemo(storageLabel, priceVal, el) {
+        document.querySelectorAll('.figma-storage-chip').forEach(c => c.classList.remove('active'));
+        if (el) el.classList.add('active');
+        const priceEl = document.getElementById('displayPriceText');
+        if (priceEl) priceEl.innerText = '$' + priceVal;
+    }
+
+    function updateSelectedVariant(color, storage) {
+        if (!allVariants || !allVariants.length) return;
+        
+        if (color) activeColor = color;
+        if (storage) activeStorage = storage;
+        
+        let matched = allVariants.find(v => v.colorName === activeColor && v.storage === activeStorage);
+        if (!matched && color) {
+            matched = allVariants.find(v => v.colorName === activeColor);
+        }
+        if (!matched && storage) {
+            matched = allVariants.find(v => v.storage === activeStorage);
+        }
+        if (!matched) {
+            matched = allVariants[0];
+        }
+        
+        if (!matched) return;
+        
+        // 1. Update Hidden Variant ID input for Cart
+        const varInput = document.getElementById('selectedVariantId');
+        if (varInput) varInput.value = matched.variantId;
+        
+        // 2. Update Price & Old Price
+        const priceEl = document.getElementById('displayPriceText');
+        if (priceEl) priceEl.innerText = '$' + matched.price;
+        
+        const oldPriceEl = document.getElementById('displayOldPriceText');
+        if (oldPriceEl) {
+            if (matched.oldPrice && matched.oldPrice > matched.price) {
+                oldPriceEl.innerText = '$' + matched.oldPrice;
+                oldPriceEl.style.display = 'inline';
+            } else {
+                oldPriceEl.style.display = 'none';
+            }
+        }
+        
+        // 3. Update Title
+        const titleEl = document.getElementById('detailProductName');
+        if (titleEl && matched.variantName) {
+            titleEl.innerText = '@Model.Name (' + matched.variantName + ')';
+        }
+        
+        // 4. Update Main Image & Gallery Thumbnails
+        if (matched.imageUrl) {
+            switchMainImg(matched.imageUrl, null);
+        }
+        
+        if (matched.mediaFiles && matched.mediaFiles.length) {
+            const thumbList = document.getElementById('galleryThumbList');
+            if (thumbList) {
+                thumbList.innerHTML = matched.mediaFiles.map((m, idx) => 
+                    `<img src="${m}" alt="Thumb ${idx+1}" class="figma-gallery-thumb ${idx===0?'active':''}" onclick="switchMainImg('${m}', this)" />`
+                ).join('');
+            }
+        }
+        
+        // 5. Update Color & Storage Active Classes
+        document.querySelectorAll('#colorPickerList .figma-color-dot').forEach(dot => {
+            if (dot.getAttribute('data-color') === matched.colorName) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        document.querySelectorAll('#storageChipList .figma-storage-chip').forEach(chip => {
+            if (chip.getAttribute('data-storage') === matched.storage) {
+                chip.classList.add('active');
+            } else {
+                chip.classList.remove('active');
+            }
+        });
+    }
+
+    function onColorSelected(colorName, el) {
+        document.querySelectorAll('#colorPickerList .figma-color-dot').forEach(d => d.classList.remove('active'));
+        if (el) el.classList.add('active');
+        updateSelectedVariant(colorName, null);
+    }
+
+    function onStorageSelected(storageVal, el) {
+        document.querySelectorAll('#storageChipList .figma-storage-chip').forEach(c => c.classList.remove('active'));
+        if (el) el.classList.add('active');
+        updateSelectedVariant(null, storageVal);
+    }
+
+    async function switchVariantClick(variantId, el, evt) {
+        if (evt) evt.preventDefault();
+        
+        try {
+            const res = await fetch('/Product/GetVariantDetailsJson?variantId=' + variantId);
+            if (!res.ok) {
+                if (el && el.href) window.location.href = el.href;
+                return;
+            }
+            const data = await res.json();
+            
+            // 1. Update Price
+            const priceEl = document.getElementById('displayPriceText');
+            if (priceEl && data.price) priceEl.innerText = '$' + Math.round(data.price);
+            
+            const oldPriceEl = document.getElementById('displayOldPriceText');
+            if (oldPriceEl) {
+                if (data.oldPrice && data.oldPrice > data.price) {
+                    oldPriceEl.innerText = '$' + Math.round(data.oldPrice);
+                    oldPriceEl.style.display = 'inline';
+                } else {
+                    oldPriceEl.style.display = 'none';
+                }
+            }
+
+            // 2. Update Main Image
+            if (data.imageUrl) {
+                document.getElementById('mainDisplayImg').src = data.imageUrl;
+            }
+
+            // 3. Update Hidden Input
+            const hiddenVarInput = document.getElementById('selectedVariantId');
+            if (hiddenVarInput) hiddenVarInput.value = data.variantId;
+
+            // 4. Update Active Classes
+            document.querySelectorAll('#colorPickerList a, #storageChipList a').forEach(item => {
+                if (item.href && item.href.includes('variant=' + variantId)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+        } catch (err) {
+            if (el && el.href) window.location.href = el.href;
+        }
+    }
+
+    async function addVariantToCart() {
+        const productId = document.getElementById('selectedProductId').value;
+        const variantId = document.getElementById('selectedVariantId').value;
+        const data = new FormData();
+        data.append('productId', productId);
+        data.append('variantId', variantId);
+        data.append('quantity', 1);
+
+        const btn = document.getElementById('mainAddToCartBtn');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Adding...';
+
+        try {
+            const res = await fetch('/Cart/AddToCart', { method: 'POST', body: data });
+            if (res.ok) {
+                window.location.href = '/Cart';
+            } else {
+                if (btn) btn.innerHTML = origHtml;
+                alert('Could not add to cart. Please try again.');
+            }
+        } catch (e) {
+            window.location.href = '/Cart';
+        }
+    }
+
+    function checkPincodeServiceability() {
+        const pincode = $('#pincodeInput').val();
+        if (!pincode || pincode.length < 6) {
+            $('#pincodeResult').removeClass('d-none text-success').addClass('text-danger').text('Enter a valid 6-digit pin code.');
+            return;
+        }
+
+        $.get('/Product/CheckPincode?pincode=' + pincode, function (res) {
+            if (res.isServiceable) {
+                $('#pincodeResult').removeClass('d-none text-danger').addClass('text-success').html('<i class="fas fa-check-circle me-1"></i> ' + res.message);
+            } else {
+                $('#pincodeResult').removeClass('d-none text-success').addClass('text-danger').html('<i class="fas fa-times-circle me-1"></i> ' + res.message);
+            }
+        });
+    }
+
+    function toggleWishlistDetails() {
+        const productId = $('#selectedProductId').val();
+        const variantId = $('#selectedVariantId').val();
+
+        $.post('/Wishlist/ToggleWishlist', { productId: productId, variantId: variantId }, function (res) {
+            if (res.success) {
+                const btn = $('#detailsWishlistBtn');
+                if (res.added) {
+                    btn.find('i').addClass('text-danger');
+                    btn.find('span').text('Saved in Wishlist');
+                } else {
+                    btn.find('i').removeClass('text-danger');
+                    btn.find('span').text('Add to Wishlist');
+                }
+            } else {
+                alert(res.message);
+            }
+        });
+    }
 </script>
+}

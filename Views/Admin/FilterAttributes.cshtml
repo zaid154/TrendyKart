@@ -1,0 +1,110 @@
+@model IEnumerable<TrendyKart.Models.CategoryFilterAttribute>
+@{
+    ViewData["Title"] = "Category Filter Attributes";
+    Layout = "_AdminLayout";
+    var categories = ViewBag.Categories as List<TrendyKart.Models.Category> ?? new List<TrendyKart.Models.Category>();
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Dynamic Filter Attributes</h3>
+            <p class="text-muted small mb-0">Configure category-specific sidebar filters (e.g., Mobiles -> RAM, Storage; Laptops -> Screen Size)</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addAttributeModal">
+            <i class="fas fa-plus me-1"></i>Add Attribute Filter
+        </button>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Attribute Name</th>
+                        <th>Category / Sub-Category Scope</th>
+                        <th>Available Filter Options</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">@item.AttributeName</td>
+                            <td>
+                                @if (item.SubCategory != null)
+                                {
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill">Sub-Cat: @item.SubCategory.Name</span>
+                                }
+                                else if (item.Category != null)
+                                {
+                                    <span class="badge bg-secondary-subtle text-dark rounded-pill">Category: @item.Category.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-muted border rounded-pill">Global</span>
+                                }
+                            </td>
+                            <td>
+                                <code class="small bg-light text-dark p-2 rounded d-inline-block">@item.OptionsJson</code>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="DeleteFilterAttribute" asp-route-id="@item.AttributeID" class="btn btn-outline-danger btn-sm rounded-circle p-2" title="Delete Attribute" onclick="return confirm('Delete this filter attribute?')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Add Attribute Modal *@
+<div class="modal fade" id="addAttributeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form method="post" asp-action="AddFilterAttribute">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Add Dynamic Filter Attribute</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="categoryId" class="form-select">
+                            <option value="">-- All Categories (Global) --</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c.CategoryID">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Attribute Name (e.g. RAM, Storage, Screen Size)</label>
+                        <input type="text" name="attributeName" class="form-control" placeholder="e.g. RAM" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Options (JSON Array format)</label>
+                        <textarea name="optionsJson" class="form-control font-monospace" rows="3" placeholder='["4GB", "8GB", "16GB", "32GB"]' required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Add Filter Attribute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

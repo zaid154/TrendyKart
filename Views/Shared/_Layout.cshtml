@@ -1,86 +1,190 @@
-﻿<!DOCTYPE html>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
 
-    <!-- Basic Meta Settings -->
+    <!-- Basic Meta -->
     <link rel="icon" type="image/png" href="~/Favicon.png" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - TrendyKart</title>
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <!-- Local CSS -->
+
+    <!-- local CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <!-- icon -->
+
+    <!-- Font  -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        body {
+            background: #f5f6fa;
+        }
+
+        .navbar {
+            border-radius: 0 0 12px 12px;
+        }
+
+        .nav-link:hover {
+            color: #0d6efd !important;
+        }
+
+        .profile-img {
+            width: 35px;
+            height: 35px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            transition: 0.3s;
+        }
+
+        .profile-img:hover {
+            transform: scale(1.1);
+            border-color: #0d6efd;
+        }
+
+        .dropdown-menu {
+            min-width: 200px;
+        }
+
+        .card {
+            border-radius: 15px;
+        }
+
+        footer {
+            border-radius: 12px 12px 0 0;
+        }
+    </style>
+
 </head>
+
 <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
+
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <!-- Logo -->
-            <a class="navbar-brand fw-bold fs-4"
+
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold fs-5"
                asp-controller="Home"
                asp-action="Index">
-                TrendyKart
+                <span class="text-dark">TrendyKart</span>
             </a>
-            <!-- Mobile Toggle -->
+
             <button class="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#mainNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <!-- Navbar Content -->
+
             <div class="collapse navbar-collapse" id="mainNavbar">
-                <!-- Left Links -->
+
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
                     <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Home"
-                           asp-action="Index">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
                             Home
                         </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Product"
-                           asp-action="Index">
+                        <a class="nav-link" asp-controller="Product" asp-action="Index">
                             Shop
                         </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Home"
-                           asp-action="About">
+                        <a class="nav-link" asp-controller="Home" asp-action="About">
                             About
                         </a>
                     </li>
+
                 </ul>
-                <!-- Right Side -->
+
                 <div class="d-flex align-items-center gap-3">
+                    <!-- SEARCH BAR WITH AUTO-COMPLETE -->
+                    <div class="position-relative d-none d-md-block" style="width: 250px;">
+                        <input type="text" id="globalSearchInput" class="form-control form-control-sm rounded-pill px-3" placeholder="Search products..." autocomplete="off" />
+                        <div id="searchSuggestionsCard" class="card position-absolute start-0 w-100 shadow mt-1 border-0 rounded-3 d-none" style="z-index: 1050; max-height: 300px; overflow-y: auto;">
+                            <div class="list-group list-group-flush" id="searchSuggestionsList"></div>
+                        </div>
+                    </div>
+
                     @if (User?.Identity?.IsAuthenticated == true)
                     {
+                        <!-- WISHLIST -->
+                        <a asp-controller="Wishlist" asp-action="Index" class="nav-link text-danger position-relative" title="My Wishlist">
+                            <i class="fas fa-heart fa-lg"></i>
+                        </a>
+
+                        <!-- CART -->
                         <a asp-controller="Cart"
                            asp-action="Index"
-                           class="nav-link">
-                            <i class="fas fa-shopping-cart"></i>
+                           class="nav-link position-relative" title="My Cart">
+                            <i class="fas fa-shopping-cart fa-lg"></i>
                         </a>
-                        <a asp-controller="Order"
-                           asp-action="OrderHistory"
-                           class="nav-link">
-                            My Orders
-                        </a>
-                        <span class="fw-semibold">
-                            @User.Identity.Name
-                        </span>
-                        <a asp-controller="Account"
-                           asp-action="Logout"
-                           class="btn btn-sm btn-danger">
-                            Logout
-                        </a>
+
+                        <!-- USER DROPDOWN -->
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown">
+
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 2px solid #000;">
+                                    <i class="far fa-user"></i>
+                                </div>
+                                <span class="fw-semibold text-dark">@User.Identity.Name</span>
+                            </a>
+
+                            <!-- DROPDOWN MENU -->
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2">
+
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                        <i class="fas fa-user me-2"></i> My Profile
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Account" asp-action="Addresses">
+                                        <i class="fas fa-map-marker-alt me-2"></i> Saved Addresses
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Wishlist" asp-action="Index">
+                                        <i class="fas fa-heart me-2 text-danger"></i> My Wishlist
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Order" asp-action="OrderHistory">
+                                        <i class="fas fa-shopping-bag me-2"></i> My Orders
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Cart" asp-action="Index">
+                                        <i class="fas fa-shopping-cart me-2"></i> My Cart
+                                    </a>
+                                </li>
+
+                                <li><hr class="dropdown-divider"></li>
+
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
                     }
                     else
                     {
@@ -89,30 +193,84 @@
                            class="btn btn-outline-dark btn-sm">
                             Login
                         </a>
+
                         <a asp-controller="Account"
                            asp-action="Register"
                            class="btn btn-primary btn-sm">
                             Register
                         </a>
                     }
+
                 </div>
             </div>
         </div>
     </nav>
-    <!-- Main Content -->
+
+    <!-- ================= MAIN ================= -->
     <main class="container flex-fill my-4">
         @RenderBody()
     </main>
-    <!-- Footer -->
+
+    <!-- ================= FOOTER ================= -->
     <footer class="mt-auto py-3 border-top bg-light">
         <div class="container text-center">
-            <p class="mb-0">
-                © TrendyKart | All rights reserved 
+            <p class="mb-0 fw-semibold">
+                © TrendyKart | All rights reserved
             </p>
         </div>
     </footer>
-    <!-- Bootstrap JS -->
+
+    <!-- JS -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let searchTimeout = null;
+        const searchInput = document.getElementById('globalSearchInput');
+        const suggestionsCard = document.getElementById('searchSuggestionsCard');
+        const suggestionsList = document.getElementById('searchSuggestionsList');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    suggestionsCard.classList.add('d-none');
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    fetch('/Product/SearchSuggestions?q=' + encodeURIComponent(query))
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data || data.length === 0) {
+                                suggestionsList.innerHTML = '<div class="p-3 text-muted small text-center">No products found</div>';
+                            } else {
+                                suggestionsList.innerHTML = data.map(item => `
+                                    <a href="/Product/Details/${item.id}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 p-2">
+                                        <img src="${item.image || '/images/no-image.png'}" style="width: 36px; height: 36px; object-fit: contain;" />
+                                        <div class="flex-grow-1 text-truncate">
+                                            <div class="fw-bold text-dark small text-truncate">${item.name}</div>
+                                            <small class="text-muted">₹${item.price}</small>
+                                        </div>
+                                    </a>
+                                `).join('');
+                            }
+                            suggestionsCard.classList.remove('d-none');
+                        });
+                }, 250);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !suggestionsCard.contains(e.target)) {
+                    suggestionsCard.classList.add('d-none');
+                }
+            });
+        }
+    </script>
+
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>

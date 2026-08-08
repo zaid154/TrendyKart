@@ -1,72 +1,470 @@
-﻿@model IEnumerable<TrendyKart.Models.Product>
+@model IEnumerable<TrendyKart.Models.Product>
 @{
-    ViewData["Title"] = "All Products";
+    ViewData["Title"] = "Manage Products";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-}
-<div class="row">
-    <div class="col-12">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">All Products</h4>
 
-            <a asp-action="Dashboard"
-               class="btn btn-sm btn-outline-dark">
-                Back
-            </a>
-        </div>
-        <!-- Content Box -->
-        <div class="border rounded p-4">
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Image</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th style="width:150px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.ProductID</td>
-                                <td>@item.Name</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                    {
-                                        <img src="@item.ImageUrl"
-                                             style="height:60px; object-fit:cover;" />
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No Image</span>
-                                    }
-                                </td>
-                                <td>₹@item.Price</td>
-                                <td>@item.Stock</td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a asp-action="EditProduct"
-                                           asp-route-id="@item.ProductID"
-                                           class="btn btn-sm btn-outline-dark">
-                                            Edit
-                                        </a>
-                                        <a asp-action="DeleteProduct"
-                                           asp-route-id="@item.ProductID"
-                                           class="btn btn-sm btn-outline-danger"
-                                           onclick="return confirm('Are you sure you want to delete this product?')">
-                                            Delete
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    var totalCount = Model.Count();
+}
+
+<style>
+    .catalog-main-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.03);
+        padding: 20px 24px;
+    }
+
+    .filter-label-text {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 3px;
+        display: block;
+    }
+
+    .filter-control {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        font-size: 12.5px;
+        height: 38px;
+        background-color: #ffffff;
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .filter-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+
+    .search-input-wrapper {
+        position: relative;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    .search-input-wrapper input {
+        padding-left: 36px;
+    }
+
+    .mockup-table {
+        margin: 0;
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .mockup-table thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 10px 12px;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .mockup-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .mockup-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .mockup-table td {
+        padding: 10px 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .prod-thumb-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: contain;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 3px;
+        flex-shrink: 0;
+    }
+
+    /* Category Badges matching mockup */
+    .cat-badge-phones { background: #e0f2fe; color: #0284c7; }
+    .cat-badge-headphones { background: #f3e8ff; color: #9333ea; }
+    .cat-badge-wearables { background: #fef3c7; color: #d97706; }
+    .cat-badge-laptops { background: #fce7f3; color: #db2777; }
+    .cat-badge-cameras { background: #dcfce7; color: #16a34a; }
+    .cat-badge-default { background: #f1f5f9; color: #475569; }
+
+    .cat-badge-pill {
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    /* Stock Badge double row matching mockup */
+    .stock-qty-box {
+        background: #dcfce7;
+        color: #15803d;
+        font-size: 11.5px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .stock-subtext {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #16a34a;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Status Pill */
+    .status-pill-active {
+        background: #d1fae5;
+        color: #059669;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+
+    /* Action Buttons Circle/Square matching mockup */
+    .mock-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        font-size: 12px;
+    }
+
+    .mock-btn-view {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+    }
+    .mock-btn-view:hover { background: #f8fafc; color: #0f172a; }
+
+    .mock-btn-edit {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+    }
+    .mock-btn-edit:hover { background: #f8fafc; color: #0f172a; }
+
+    .mock-btn-delete {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #ef4444;
+    }
+    .mock-btn-delete:hover { background: #fee2e2; color: #b91c1c; }
+
+    /* Pagination */
+    .page-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        font-weight: 700;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .page-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: #ffffff;
+    }
+</style>
+
+<!-- MAIN CARD CONTAINER -->
+<div class="catalog-main-card">
+    
+    <!-- CARD TOP HEADER ROW -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                <i class="fas fa-bag-shopping"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0;">Product Catalog</h3>
+                <div style="font-size: 12px; color: #64748b; margin-top: 1px;">Total @totalCount products listed in TrendyKart store</div>
             </div>
         </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-outline-secondary" style="border-radius: 8px; font-weight: 700; font-size: 12.5px; padding: 8px 14px; border-color: #e2e8f0; color: #334155; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-arrow-up-right-from-square"></i> Export
+            </button>
+            <a asp-action="AddProduct" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%); border: none; border-radius: 8px; font-weight: 700; font-size: 12.5px; padding: 8px 16px; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);">
+                <i class="fas fa-plus"></i> Add New Product
+            </a>
+        </div>
     </div>
+
+    <!-- FILTER TOOLBAR ROW -->
+    <div class="row g-2 mb-3 align-items-end">
+        <div class="col-md-5">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="catalogSearchInput" class="form-control filter-control" placeholder="Search products, brand, category..." onkeyup="filterCatalogTable()" />
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <label class="filter-label-text">Category</label>
+            <select id="categoryFilter" class="form-select filter-control" onchange="filterCatalogTable()">
+                <option value="">All Categories</option>
+                @foreach (var cat in Model.Select(p => p.Category).Distinct().OrderBy(c => c))
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="filter-label-text">Status</label>
+            <select id="statusFilter" class="form-select filter-control" onchange="filterCatalogTable()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="filter-label-text">Sort By</label>
+            <select id="sortFilter" class="form-select filter-control">
+                <option value="newest">Newest First</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+            </select>
+        </div>
+
+        <div class="col-md-1 d-flex justify-content-end">
+            <button type="button" class="btn btn-outline-secondary filter-control" style="width: 38px; display: flex; align-items: center; justify-content: center; border-color: #cbd5e1;" title="Filter Options">
+                <i class="fas fa-filter"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TABLE FIT 100% -->
+    <div style="overflow: hidden;">
+        <table class="table mockup-table" id="catalogTable">
+            <thead>
+                <tr>
+                    <th style="width: 65px;">ID</th>
+                    <th style="width: 32%;">PRODUCT</th>
+                    <th style="width: 15%;">CATEGORY</th>
+                    <th style="width: 15%;">PRICE</th>
+                    <th style="width: 13%;">STOCK</th>
+                    <th style="width: 10%;">STATUS</th>
+                    <th style="width: 115px; text-align: right;">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="catalogTbody">
+                @foreach (var item in Model)
+                {
+                    var catLower = (item.Category ?? "").ToLower();
+                    var badgeClass = "cat-badge-default";
+                    if (catLower.Contains("phone")) { badgeClass = "cat-badge-phones"; }
+                    else if (catLower.Contains("headphone")) { badgeClass = "cat-badge-headphones"; }
+                    else if (catLower.Contains("watch") || catLower.Contains("wearable")) { badgeClass = "cat-badge-wearables"; }
+                    else if (catLower.Contains("computer") || catLower.Contains("laptop")) { badgeClass = "cat-badge-laptops"; }
+                    else if (catLower.Contains("camera")) { badgeClass = "cat-badge-cameras"; }
+
+                    <tr data-name="@item.Name.ToLower()" data-brand="@(string.IsNullOrEmpty(item.Brand) ? "" : item.Brand.ToLower())" data-category="@item.Category" class="catalog-row">
+                        <td style="font-weight: 700; color: #64748b;">
+                            #@item.ProductID
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" class="prod-thumb-img" alt="@item.Name" />
+                                }
+                                else
+                                {
+                                    <div class="prod-thumb-img d-flex align-items-center justify-content-center text-muted" style="font-size: 9px; font-weight: 700;">
+                                        NO IMG
+                                    </div>
+                                }
+                                <div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductID" target="_blank" style="font-size: 13.5px; font-weight: 700; color: #0f172a; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis;">
+                                        @item.Name
+                                    </a>
+                                    <div style="font-size: 11.5px; color: #64748b; margin-top: 1px;">
+                                        Brand: <span style="font-weight: 600; color: #334155;">@(string.IsNullOrEmpty(item.Brand) ? "TrendyKart" : item.Brand)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="cat-badge-pill @badgeClass">
+                                @item.Category
+                            </span>
+                        </td>
+                        <td>
+                            <div style="font-size: 14px; font-weight: 800; color: #0f172a;">₹@item.Price.ToString("N0")</div>
+                            @if (item.OldPrice.HasValue && item.OldPrice.Value > item.Price)
+                            {
+                                <small style="text-decoration: line-through; color: #94a3b8; font-size: 11px;">₹@item.OldPrice.Value.ToString("N0")</small>
+                            }
+                        </td>
+                        <td>
+                            <div>
+                                <span class="stock-qty-box">
+                                    <i class="fas fa-box" style="font-size: 10px;"></i> @item.Stock
+                                </span>
+                                <div class="stock-subtext">
+                                    <i class="fas fa-circle" style="font-size: 5px;"></i> In stock
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-pill-active">
+                                Active
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 5px; justify-content: flex-end;">
+                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductID" target="_blank" class="mock-action-btn mock-btn-view" title="View Product Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="EditProduct" asp-route-id="@item.ProductID" class="mock-action-btn mock-btn-edit" title="Edit Product & Variations">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <a asp-action="DeleteProduct" asp-route-id="@item.ProductID" class="mock-action-btn mock-btn-delete" onclick="return confirm('Are you sure you want to delete this product?')" title="Delete Product">
+                                    <i class="fas fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION FOOTER ROW (PAGED AT 7 ITEMS PER PAGE) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; pt-2; border-top: 1px solid #f1f5f9;">
+        <div id="paginationSummary" style="font-size: 12.5px; color: #64748b; font-weight: 600;">
+            Showing 1 to 7 of @totalCount products
+        </div>
+
+        <div id="paginationControls" style="display: flex; gap: 5px; align-items: center;">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
 </div>
+
+@section Scripts {
+    <script>
+        const pageSize = 7;
+        let currentPage = 1;
+        let visibleRows = [];
+
+        document.addEventListener("DOMContentLoaded", function () {
+            initPagination();
+        });
+
+        function initPagination() {
+            const allRows = Array.from(document.querySelectorAll('.catalog-row'));
+            visibleRows = allRows;
+            renderPage(1);
+        }
+
+        function filterCatalogTable() {
+            const query = document.getElementById('catalogSearchInput').value.toLowerCase().trim();
+            const selectedCat = document.getElementById('categoryFilter').value;
+
+            const allRows = Array.from(document.querySelectorAll('.catalog-row'));
+
+            visibleRows = allRows.filter(tr => {
+                const name = tr.getAttribute('data-name') || '';
+                const brand = tr.getAttribute('data-brand') || '';
+                const category = tr.getAttribute('data-category') || '';
+
+                const matchesSearch = !query || name.includes(query) || brand.includes(query);
+                const matchesCat = !selectedCat || category === selectedCat;
+                return matchesSearch && matchesCat;
+            });
+
+            allRows.forEach(tr => tr.style.display = 'none');
+            renderPage(1);
+        }
+
+        function renderPage(page) {
+            currentPage = page;
+            const total = visibleRows.length;
+            const totalPages = Math.ceil(total / pageSize) || 1;
+
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+
+            document.querySelectorAll('.catalog-row').forEach(tr => tr.style.display = 'none');
+
+            for (let i = startIdx; i < endIdx; i++) {
+                if (visibleRows[i]) {
+                    visibleRows[i].style.display = '';
+                }
+            }
+
+            // Summary text
+            const summaryText = total === 0 
+                ? 'Showing 0 products' 
+                : `Showing ${startIdx + 1} to ${endIdx} of ${total} products`;
+            document.getElementById('paginationSummary').textContent = summaryText;
+
+            // Controls
+            let ctrlHtml = '';
+            ctrlHtml += `<button type="button" class="page-btn" onclick="renderPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled style="opacity:0.5;"' : ''}><i class="fas fa-chevron-left"></i></button>`;
+            
+            for (let p = 1; p <= totalPages; p++) {
+                ctrlHtml += `<button type="button" class="page-btn ${p === currentPage ? 'active' : ''}" onclick="renderPage(${p})">${p}</button>`;
+            }
+
+            ctrlHtml += `<button type="button" class="page-btn" onclick="renderPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled style="opacity:0.5;"' : ''}><i class="fas fa-chevron-right"></i></button>`;
+
+            document.getElementById('paginationControls').innerHTML = ctrlHtml;
+        }
+    </script>
+}

@@ -1,0 +1,744 @@
+@model TrendyKart.Models.Customer
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "_StoreLayout";
+    
+    string initials = "U";
+    if (!string.IsNullOrWhiteSpace(Model.FullName))
+    {
+        var parts = Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = parts.Length > 1 
+            ? $"{parts[0][0]}{parts[parts.Length - 1][0]}".ToUpper() 
+            : parts[0][0].ToString().ToUpper();
+    }
+}
+
+<style>
+    .account-wrapper {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 30px;
+        align-items: start;
+        margin-bottom: 60px;
+    }
+
+    .account-sidebar {
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+        padding: 24px 16px;
+        position: sticky;
+        top: 90px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    }
+
+    .sidebar-user-info {
+        text-align: center;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .avatar-circle {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #101010 0%, #333333 100%);
+        color: #ffffff;
+        font-size: 26px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px auto;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        border: 3px solid #ffffff;
+    }
+
+    .nav-account {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .nav-account-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #555555;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .nav-account-item:hover {
+        background: #f5f5f7;
+        color: #101010;
+    }
+
+    .nav-account-item.active {
+        background: #101010;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .nav-account-item.text-danger:hover {
+        background: #fff0f0;
+        color: #dc3545;
+    }
+
+    .profile-card-main {
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+        padding: 36px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    }
+
+    .profile-header-banner {
+        background: linear-gradient(135deg, #101010 0%, #2f2f37 100%);
+        border-radius: 14px;
+        padding: 28px;
+        color: #ffffff;
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .profile-header-text h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 6px 0;
+        letter-spacing: -0.3px;
+    }
+
+    .profile-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .badge-trendykart {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .badge-trendykart-success {
+        background: rgba(40, 167, 69, 0.25);
+        color: #6ef097;
+        border-color: rgba(40, 167, 69, 0.4);
+    }
+
+    .section-heading {
+        font-size: 18px;
+        font-weight: 700;
+        color: #101010;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .input-field-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .input-field-wrapper label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 8px;
+    }
+
+    .input-icon-box {
+        position: relative;
+    }
+
+    .input-icon-box i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8a8a8a;
+        font-size: 15px;
+        z-index: 2;
+        transition: color 0.2s ease;
+    }
+
+    .form-control-trendykart {
+        width: 100%;
+        height: 48px;
+        padding: 10px 16px 10px 44px;
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #101010;
+        background-color: #fafafa;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .form-control-trendykart:focus {
+        background-color: #ffffff;
+        border-color: #101010;
+        box-shadow: 0 0 0 4px rgba(16, 16, 16, 0.08);
+    }
+
+    .form-control-trendykart:focus + i,
+    .input-icon-box:focus-within i {
+        color: #101010;
+    }
+
+    .form-control-trendykart[readonly] {
+        background-color: #f0f0f2;
+        color: #777777;
+        cursor: not-allowed;
+    }
+
+    .btn-trendykart-dark {
+        background: #101010;
+        color: #ffffff;
+        border: none;
+        height: 50px;
+        padding: 0 28px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-trendykart-dark:hover {
+        background: #2b2b2b;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .btn-trendykart-outline {
+        background: transparent;
+        color: #101010;
+        border: 1px solid #101010;
+        height: 48px;
+        padding: 0 20px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-trendykart-outline:hover {
+        background: #101010;
+        color: #ffffff;
+    }
+
+    .otp-card-wrapper {
+        border-radius: 14px;
+        background: #f9f9fb;
+        border: 1px solid #e2e2e8;
+        padding: 28px;
+        margin-top: 24px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    }
+
+    @@media (max-width: 900px) {
+        .account-wrapper {
+            grid-template-columns: 1fr;
+        }
+        .account-sidebar {
+            position: static;
+        }
+        .profile-card-main {
+            padding: 24px;
+        }
+        .profile-header-banner {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+
+<section class="container section">
+
+    <!-- Breadcrumb -->
+    <nav class="crumbs">
+        <a asp-controller="Home" asp-action="Index">Home</a>
+        <span>/</span>
+        <span>Account</span>
+        <span>/</span>
+        <span>My Profile</span>
+    </nav>
+
+    <div class="account-wrapper">
+
+        <!-- ACCOUNT SIDEBAR -->
+        <aside class="account-sidebar">
+            <div class="sidebar-user-info">
+                <div class="avatar-circle">@initials</div>
+                <h4 style="font-size: 16px; font-weight: 700; color: #101010; margin-bottom: 2px;">@Model.FullName</h4>
+                <span style="font-size: 12px; color: #777;">@Model.Email</span>
+            </div>
+
+            <nav class="nav-account">
+                <a class="nav-account-item active" asp-controller="Account" asp-action="Profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a class="nav-account-item" asp-controller="Order" asp-action="OrderHistory">
+                    <i class="fas fa-box"></i>
+                    <span>My Orders</span>
+                </a>
+                <a class="nav-account-item" asp-controller="Cart" asp-action="Index">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>My Cart</span>
+                </a>
+                <hr style="margin: 10px 0; border-color: #f0f0f0;" />
+                <a class="nav-account-item text-danger" asp-controller="Account" asp-action="Logout">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN PROFILE CONTENT -->
+        <main class="profile-card-main">
+
+            <!-- HEADER BANNER -->
+            <div class="profile-header-banner">
+                <div class="profile-header-text">
+                    <h2>Welcome back, @Model.FullName</h2>
+                    <p style="font-size: 14px; margin: 0; opacity: 0.85;">Manage your personal info, shipping address, and password settings.</p>
+                    <div class="profile-badges">
+                        <span class="badge-trendykart"><i class="fas fa-user-shield"></i> Customer Account</span>
+                        @if (Model.IsEmailVerified)
+                        {
+                            <span class="badge-trendykart badge-trendykart-success"><i class="fas fa-circle-check"></i> Verified Email</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERT MESSAGE BOX -->
+            <div id="messageBox" class="alert d-none mb-4" style="border-radius: 10px; font-size: 14px; font-weight: 500;"></div>
+
+            <form autocomplete="off">
+                @Html.AntiForgeryToken()
+
+                <!-- PERSONAL DETAILS SECTION -->
+                <div class="section-heading">
+                    <i class="fas fa-id-card" style="font-size: 18px;"></i> Personal Details
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="input-field-wrapper">
+                            <label for="FullName">Full Name</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="FullName" value="@Model.FullName" class="form-control-trendykart" placeholder="Enter your full name" />
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="input-field-wrapper">
+                            <label for="Email">Current Email</label>
+                            <div style="display: flex; gap: 10px;">
+                                <div class="input-icon-box" style="flex: 1;">
+                                    <input type="email" id="Email" value="@Model.Email" class="form-control-trendykart" readonly />
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <button type="button" id="changeEmailBtn" class="btn-trendykart-outline">Change</button>
+                            </div>
+                            <div id="emailChangeSection" class="d-none mt-2">
+                                <div class="input-icon-box">
+                                    <input type="email" id="NewEmail" class="form-control-trendykart" placeholder="Enter new email address" />
+                                    <i class="fas fa-at"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="input-field-wrapper">
+                            <label for="Phone">Phone Number</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="Phone" value="@Model.Phone" class="form-control-trendykart" placeholder="+91 Mobile Number" />
+                                <i class="fas fa-phone"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="input-field-wrapper">
+                            <label for="DefaultStreet">Street Address</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="DefaultStreet" value="@Model.DefaultStreet" class="form-control-trendykart" placeholder="House no, Street name, Area" />
+                                <i class="fas fa-location-dot"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="input-field-wrapper">
+                            <label for="DefaultCity">City</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="DefaultCity" value="@Model.DefaultCity" class="form-control-trendykart" placeholder="City" />
+                                <i class="fas fa-city"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="input-field-wrapper">
+                            <label for="DefaultState">State</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="DefaultState" value="@Model.DefaultState" class="form-control-trendykart" placeholder="State" />
+                                <i class="fas fa-map"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="input-field-wrapper">
+                            <label for="DefaultPincode">Pincode</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="DefaultPincode" value="@Model.DefaultPincode" class="form-control-trendykart" placeholder="Postal Code" />
+                                <i class="fas fa-mail-bulk"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="input-field-wrapper">
+                            <label for="DefaultCountry">Country</label>
+                            <div class="input-icon-box">
+                                <input type="text" id="DefaultCountry" value="@Model.DefaultCountry" class="form-control-trendykart" placeholder="Country" />
+                                <i class="fas fa-globe"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECURITY SETTINGS SECTION -->
+                <div class="section-heading mt-4">
+                    <i class="fas fa-shield-halved" style="font-size: 18px;"></i> Security Settings
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="input-field-wrapper">
+                            <label for="CurrentPassword">Current Password</label>
+                            <div class="input-icon-box">
+                                <input type="password" id="CurrentPassword" class="form-control-trendykart" placeholder="Current Password" />
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-field-wrapper">
+                            <label for="NewPassword">New Password</label>
+                            <div class="input-icon-box">
+                                <input type="password" id="NewPassword" class="form-control-trendykart" placeholder="New Password" />
+                                <i class="fas fa-key"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-field-wrapper">
+                            <label for="ConfirmPassword">Confirm Password</label>
+                            <div class="input-icon-box">
+                                <input type="password" id="ConfirmPassword" class="form-control-trendykart" placeholder="Confirm Password" />
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="saveChangesBtn" class="btn-trendykart-dark mt-2">
+                    <i class="fas fa-floppy-disk me-1"></i> Save Changes
+                </button>
+
+                <!-- OTP SECTION -->
+                <div id="otpSection" class="mt-4 d-none">
+                    <div class="otp-card-wrapper text-center">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #eef2ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 12px auto;">
+                            <i class="fas fa-shield-keyhole"></i>
+                        </div>
+                        <h5 style="font-size: 17px; font-weight: 700; color: #101010; margin-bottom: 6px;">Security Verification Required</h5>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">We have sent a 6-digit OTP code to your registered email address.</p>
+
+                        <div style="max-width: 260px; margin: 0 auto 16px auto;">
+                            <input type="text" id="otpInput" maxlength="6" class="form-control-trendykart text-center" style="font-size: 24px; letter-spacing: 8px; font-weight: 700; height: 56px; padding-left: 16px;" placeholder="------" />
+                        </div>
+
+                        <button type="button" id="verifyOtpBtn" class="btn-trendykart-dark mb-2" style="background: #16a34a;">
+                            <i class="fas fa-check-circle me-1"></i> Verify &amp; Confirm Update
+                        </button>
+
+                        <button type="button" id="resendOtpBtn" class="btn-trendykart-outline w-100">
+                            Resend OTP
+                        </button>
+
+                        <div id="otpTimer" style="font-size: 13px; color: #dc2626; font-weight: 600; margin-top: 12px;"></div>
+                    </div>
+                </div>
+
+            </form>
+        </main>
+
+    </div>
+</section>
+
+<script>
+let otpSent = false;
+let otpTimerInterval;
+let resendTimerInterval;
+
+document.getElementById("changeEmailBtn").addEventListener("click", function () {
+    const section = document.getElementById("emailChangeSection");
+
+    if (section.classList.contains("d-none")) {
+        section.classList.remove("d-none");
+        this.innerText = "Cancel";
+    } else {
+        section.classList.add("d-none");
+        this.innerText = "Change";
+        document.getElementById("NewEmail").value = "";
+    }
+});
+
+function showMessage(msg, type) {
+    const box = document.getElementById("messageBox");
+    box.className = `alert alert-${type}`;
+    box.innerText = msg;
+    box.classList.remove("d-none");
+
+    setTimeout(() => box.classList.add("d-none"), 3500);
+}
+
+document.getElementById('saveChangesBtn').addEventListener('click', async function () {
+
+    if (otpSent) {
+        showMessage("Verify OTP first", "warning");
+        return;
+    }
+
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending OTP...';
+
+    try {
+        const res = await fetch('/Account/SendUpdateOTP', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(getFormData())
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+
+            if (result.directUpdate) {
+                showMessage("Profile updated successfully", "success");
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-floppy-disk me-1"></i> Save Changes';
+                return;
+            }
+
+            otpSent = true;
+            showMessage("OTP sent successfully to your email", "success");
+
+            document.getElementById('otpSection').classList.remove('d-none');
+
+            startOtpTimer();      // 5 min expiry
+            startResendTimer();  // 2 min lock
+
+            this.innerHTML = '<i class="fas fa-check me-1"></i> OTP Sent';
+
+        } else {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-floppy-disk me-1"></i> Save Changes';
+            showMessage(result.message, "danger");
+        }
+
+    } catch (error) {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-floppy-disk me-1"></i> Save Changes';
+        showMessage("Something went wrong", "danger");
+    }
+});
+
+document.getElementById('verifyOtpBtn').addEventListener('click', async function () {
+
+    const otp = document.getElementById('otpInput').value.trim();
+
+    if (!otp || otp.length !== 6) {
+        showMessage("Enter valid 6-digit OTP", "danger");
+        return;
+    }
+
+    try {
+        const res = await fetch('/Account/VerifyUpdateOTP', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ OTP: otp })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+
+            if (result.emailChanged) {
+                showMessage(result.message, "warning");
+                setTimeout(() => window.location = "/Account/Login", 1500);
+                return;
+            }
+
+            showMessage("Profile updated successfully!", "success");
+            setTimeout(() => location.reload(), 1200);
+
+        } else {
+            showMessage(result.message, "danger");
+            document.getElementById("otpInput").value = "";
+        }
+
+    } catch (error) {
+        showMessage("Verification failed", "danger");
+    }
+});
+
+document.getElementById('resendOtpBtn').addEventListener('click', async function () {
+
+    const btn = this;
+
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.innerText = "Sending...";
+
+    try {
+        const res = await fetch('/Account/SendUpdateOTP', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(getFormData())
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            showMessage("OTP resent!", "success");
+
+            clearInterval(otpTimerInterval);
+            startOtpTimer();      // reset expiry
+            startResendTimer();  // again 2 min lock
+
+        } else {
+            showMessage(result.message, "danger");
+            btn.disabled = false;
+            btn.innerText = "Resend OTP";
+        }
+
+    } catch (error) {
+        btn.disabled = false;
+        btn.innerText = "Resend OTP";
+        showMessage("Error sending OTP", "danger");
+    }
+});
+
+function startOtpTimer() {
+    let seconds = 300;
+    clearInterval(otpTimerInterval);
+
+    otpTimerInterval = setInterval(() => {
+        let min = Math.floor(seconds / 60);
+        let sec = seconds % 60;
+
+        document.getElementById('otpTimer').innerText =
+            `OTP expires in ${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+        seconds--;
+
+        if (seconds < 0) {
+            clearInterval(otpTimerInterval);
+
+            document.getElementById('otpTimer').innerText = "OTP Expired";
+
+            otpSent = false;
+
+            const btn = document.getElementById("saveChangesBtn");
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-floppy-disk me-1"></i> Save Changes';
+        }
+
+    }, 1000);
+}
+
+function startResendTimer() {
+    const btn = document.getElementById("resendOtpBtn");
+    let seconds = 120;
+
+    clearInterval(resendTimerInterval);
+    btn.disabled = true;
+
+    resendTimerInterval = setInterval(() => {
+        btn.innerText = `Resend in ${seconds}s`;
+        seconds--;
+
+        if (seconds < 0) {
+            clearInterval(resendTimerInterval);
+            btn.disabled = false;
+            btn.innerText = "Resend OTP";
+        }
+    }, 1000);
+}
+
+function getFormData() {
+    return {
+        FullName: document.getElementById("FullName").value,
+        Email: document.getElementById("Email").value,
+        NewEmail: document.getElementById("NewEmail").value || document.getElementById("Email").value,
+        Phone: document.getElementById("Phone").value,
+        DefaultStreet: document.getElementById("DefaultStreet").value,
+        DefaultCity: document.getElementById("DefaultCity").value,
+        DefaultState: document.getElementById("DefaultState").value,
+        DefaultPincode: document.getElementById("DefaultPincode").value,
+        DefaultCountry: document.getElementById("DefaultCountry").value,
+        CurrentPassword: document.getElementById("CurrentPassword").value,
+        NewPassword: document.getElementById("NewPassword").value
+    };
+}
+
+function getHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+    };
+}
+</script>

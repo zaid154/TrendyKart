@@ -1,0 +1,472 @@
+@model TrendyKart.Models.Admin
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@if (Model != null)
+{
+    <h2>Admin Profile</h2>
+
+    <p>Name: @Model.FullName</p>
+    <p>Email: @Model.Email</p>
+}
+else
+{
+    <div class="alert alert-danger">
+        Admin data not found.
+    </div>
+}
+
+<style>
+    body {
+        background: #f5f6fa;
+    }
+
+    .profile-card {
+        border-radius: 15px;
+        background: #fff;
+        border: none;
+    }
+
+    .form-label {
+        font-size: 13px;
+        color: #555;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .otp-card {
+        border-radius: 12px;
+        background: #f9fafc;
+        border: 1px solid #e9ecef;
+    }
+
+    .otp-box input {
+        text-align: center;
+        font-size: 24px;
+        letter-spacing: 8px;
+        font-weight: bold;
+        font-family: monospace;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #007bff;
+        display: inline-block;
+    }
+
+    .info-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .btn-save {
+        background: #007bff;
+        border: none;
+        color: white;
+        padding: 10px;
+        font-weight: 600;
+    }
+
+    .btn-save:hover {
+        background: #0056b3;
+    }
+
+    .btn-verify {
+        background: #28a745;
+        border: none;
+        color: white;
+    }
+
+    .btn-verify:hover {
+        background: #218838;
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+    <div class="profile-card shadow-lg p-4">
+
+        <div class="text-center mb-4">
+            <h4 class="mb-0">@Model.FullName</h4>
+            <p class="text-muted small">Administrator</p>
+        </div>
+
+        <div id="messageBox" class="alert d-none"></div>
+
+        @Html.AntiForgeryToken()
+
+        <!-- PROFILE SECTION -->
+        <div class="mb-4">
+            <h6 class="section-title">Basic Information</h6>
+            
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="FullName" value="@Model.FullName" class="form-control" />
+                <div class="info-text">Your full name will be displayed in the dashboard</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Current Email</label>
+                <div class="input-group">
+                    <input type="email" value="@Model.Email" class="form-control" readonly />
+                    <button type="button" id="changeEmailBtn" class="btn btn-outline-primary">Change</button>
+                </div>
+            </div>
+
+            <div id="emailChangeSection" class="d-none">
+                <div class="mb-3">
+                    <label class="form-label">New Email Address</label>
+                    <input type="email" id="NewEmail" class="form-control" placeholder="Enter new email address" />
+                    <div class="info-text">We'll send a verification OTP to this email</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSWORD SECTION -->
+        <div class="mb-4">
+            <h6 class="section-title">Security Settings</h6>
+            
+            <div class="mb-3">
+                <label class="form-label">Current Password</label>
+                <input type="password" id="CurrentPassword" class="form-control" placeholder="Enter current password" />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <input type="password" id="NewPassword" class="form-control" placeholder="Enter new password (min 6 characters)" />
+                <div class="info-text">Password must be at least 6 characters long</div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" id="ConfirmPassword" class="form-control" placeholder="Confirm new password" />
+            </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="d-grid gap-2">
+            <button type="button" id="saveBtn" class="btn btn-save btn-lg">
+                Save Changes
+            </button>
+        </div>
+
+        <div id="otpSection" class="mt-4 d-none">
+            <div class="card otp-card shadow-sm p-4 text-center">
+                <div class="mb-3">
+                    <h5 class="fw-bold">Verification Required</h5>
+                    <p class="small text-muted">A 6-digit OTP has been sent to <strong id="otpEmail">your email</strong></p>
+                </div>
+
+                <div class="otp-box">
+                    <input type="text" id="otpInput" maxlength="6"
+                           class="form-control mt-2 text-center" placeholder="------" />
+                </div>
+
+                <button id="verifyOtpBtn" class="btn btn-verify mt-3 w-100">
+                    Verify OTP
+                </button>
+
+                <div id="otpTimer" class="text-danger mt-2 fw-semibold"></div>
+                <button id="resendOtpBtn" class="btn btn-link btn-sm mt-2 d-none">Resend OTP</button>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" class="text-center mt-3 d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let otpSent = false;
+let otpTimerInterval;
+
+function showMessage(msg, type) {
+    const box = document.getElementById("messageBox");
+    box.className = `alert alert-${type}`;
+    box.innerText = msg;
+    box.classList.remove("d-none");
+    setTimeout(() => box.classList.add("d-none"), 5000);
+}
+
+function showLoading(show) {
+    const spinner = document.getElementById("loadingSpinner");
+    const saveBtn = document.getElementById("saveBtn");
+    
+    if (show) {
+        spinner.classList.remove("d-none");
+        saveBtn.disabled = true;
+    } else {
+        spinner.classList.add("d-none");
+        saveBtn.disabled = false;
+    }
+}
+
+function startTimer() {
+    let seconds = 300;
+    clearInterval(otpTimerInterval);
+    
+    otpTimerInterval = setInterval(() => {
+        let min = Math.floor(seconds / 60);
+        let sec = seconds % 60;
+        document.getElementById('otpTimer').innerHTML = `OTP expires in ${min}:${sec < 10 ? '0' : ''}${sec}`;
+        seconds--;
+        
+        if (seconds < 0) {
+            clearInterval(otpTimerInterval);
+            document.getElementById('otpTimer').innerHTML = 'OTP Expired - Please request again';
+            document.getElementById('resendOtpBtn').classList.remove('d-none');
+            otpSent = false;
+            document.getElementById("saveBtn").disabled = false;
+        }
+    }, 1000);
+}
+
+document.getElementById('changeEmailBtn').addEventListener('click', function() {
+    const section = document.getElementById('emailChangeSection');
+    section.classList.toggle('d-none');
+    
+    if (!section.classList.contains('d-none')) {
+        this.textContent = 'Cancel';
+        this.classList.remove('btn-outline-primary');
+        this.classList.add('btn-outline-secondary');
+    } else {
+        this.textContent = 'Change';
+        this.classList.remove('btn-outline-secondary');
+        this.classList.add('btn-outline-primary');
+        document.getElementById('NewEmail').value = '';
+    }
+});
+
+document.getElementById('saveBtn').addEventListener('click', async function () {
+    if (otpSent) {
+        showMessage("Please verify the OTP first", "warning");
+        return;
+    }
+
+    const fullName = document.getElementById("FullName").value;
+    const newEmail = document.getElementById("NewEmail").value;
+    const currentPassword = document.getElementById("CurrentPassword").value;
+    const newPassword = document.getElementById("NewPassword").value;
+    const confirmPassword = document.getElementById("ConfirmPassword").value;
+    
+    if (!fullName.trim()) {
+        showMessage("Full name is required", "danger");
+        return;
+    }
+    
+    if (newPassword && newPassword !== confirmPassword) {
+        showMessage("New passwords do not match", "danger");
+        return;
+    }
+    
+    if (newPassword && newPassword.length < 6) {
+        showMessage("New password must be at least 6 characters", "danger");
+        return;
+    }
+    
+    const hasNameChange = fullName !== '@Model.FullName';
+    const hasEmailChange = newEmail && newEmail !== '@Model.Email';
+    const hasPasswordChange = newPassword.length > 0;
+    
+    if (!hasNameChange && !hasEmailChange && !hasPasswordChange) {
+        showMessage("No changes to save", "info");
+        return;
+    }
+    
+    if (hasNameChange && !hasEmailChange && !hasPasswordChange) {
+        showLoading(true);
+        this.disabled = true;
+        
+        try {
+            const res = await fetch('/Admin/UpdateProfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ FullName: fullName })
+            });
+            
+            const result = await res.json();
+            
+            if (result.success) {
+                showMessage("Profile updated successfully!", "success");
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showMessage(result.message, "danger");
+            }
+        } catch (error) {
+            showMessage("Error updating profile", "danger");
+        } finally {
+            showLoading(false);
+            this.disabled = false;
+        }
+        return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = "Sending OTP...";
+    
+    const data = {
+        FullName: fullName,
+        NewEmail: newEmail,
+        CurrentPassword: currentPassword,
+        NewPassword: newPassword
+    };
+    
+    try {
+        const res = await fetch('/Admin/SendUpdateOTP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (result.success) {
+            if (result.directUpdate) {
+                showMessage("Profile updated successfully!", "success");
+                setTimeout(() => location.reload(), 1200);
+                return;
+            }
+            
+            otpSent = true;
+            const emailTo = newEmail || '@Model.Email';
+            document.getElementById('otpEmail').innerText = emailTo;
+            showMessage("OTP sent to your email address", "success");
+            document.getElementById('otpSection').classList.remove('d-none');
+            startTimer();
+            
+            this.innerHTML = "OTP Sent";
+        } else {
+            showMessage(result.message, "danger");
+            this.disabled = false;
+            this.innerHTML = "Save Changes";
+        }
+    } catch (error) {
+        showMessage("Error sending OTP. Please try again.", "danger");
+        this.disabled = false;
+        this.innerHTML = "Save Changes";
+    }
+});
+
+document.getElementById('verifyOtpBtn').addEventListener('click', async function () {
+    const otp = document.getElementById('otpInput').value;
+    
+    if (!otp || otp.length !== 6) {
+        showMessage("Please enter a valid 6-digit OTP", "danger");
+        return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = "Verifying...";
+    
+    try {
+        const res = await fetch('/Admin/VerifyUpdateOTP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({ OTP: otp })
+        });
+        
+        const result = await res.json();
+        
+        if (result.success) {
+            showMessage("Profile updated successfully!", "success");
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showMessage(result.message, "danger");
+            this.disabled = false;
+            this.innerHTML = "Verify OTP";
+        }
+    } catch (error) {
+        showMessage("Error verifying OTP", "danger");
+        this.disabled = false;
+        this.innerHTML = "Verify OTP";
+    }
+});
+
+document.getElementById('resendOtpBtn').addEventListener('click', async function() {
+    const data = {
+        FullName: document.getElementById("FullName").value,
+        NewEmail: document.getElementById("NewEmail").value,
+        CurrentPassword: document.getElementById("CurrentPassword").value,
+        NewPassword: document.getElementById("NewPassword").value
+    };
+    
+    this.disabled = true;
+    this.innerHTML = "Sending...";
+    
+    try {
+        const res = await fetch('/Admin/SendUpdateOTP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (result.success) {
+            showMessage("New OTP sent to your email", "success");
+            startTimer();
+            this.classList.add('d-none');
+            document.getElementById('otpTimer').classList.remove('d-none');
+            document.getElementById('otpInput').value = '';
+        } else {
+            showMessage(result.message, "danger");
+        }
+    } catch (error) {
+        showMessage("Error resending OTP", "danger");
+    } finally {
+        this.disabled = false;
+        this.innerHTML = "Resend OTP";
+    }
+});
+
+document.getElementById('NewPassword').addEventListener('input', function() {
+    const password = this.value;
+    const strengthDiv = document.createElement('div');
+    strengthDiv.className = 'info-text mt-1';
+    
+    if (password.length === 0) {
+        return;
+    }
+    
+    let strength = 'Weak';
+    let color = 'red';
+    
+    if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+        strength = 'Strong';
+        color = 'green';
+    } else if (password.length >= 6) {
+        strength = 'Medium';
+        color = 'orange';
+    }
+    
+    const existing = document.querySelector('.strength-indicator');
+    if (existing) existing.remove();
+    
+    strengthDiv.className = `info-text mt-1 strength-indicator`;
+    strengthDiv.style.color = color;
+    strengthDiv.innerHTML = `Password strength: ${strength}`;
+    this.parentNode.appendChild(strengthDiv);
+});
+</script>

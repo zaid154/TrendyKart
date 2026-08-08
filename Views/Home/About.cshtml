@@ -1,26 +1,95 @@
-﻿@{
+@{
     ViewData["Title"] = "About";
+    Layout = "_StoreLayout";
 }
-<section class="py-4">
-    <div class="container text-center">
-        <h2 class="fw-bold mb-2">About TrendyKart</h2>
-        <p class="text-muted mx-auto mb-2" style="max-width: 650px;">
-            TrendyKart is an online shopping platform that makes
-            buying products simple, secure, and convenient.
+
+<style>
+    .page-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding-left: clamp(1rem, 3vw, 3rem);
+        padding-right: clamp(1rem, 3vw, 3rem);
+    }
+    .about-card-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .about-card-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        border-color: #cbd5e1;
+    }
+</style>
+
+<div class="page-container py-4">
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-4">
+        <div class="crumbs" style="font-size: 13px; color: #64748b;">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Home</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <span class="fw-bold text-dark">About Us</span>
+        </div>
+    </nav>
+
+    @* Hero Header *@
+    <div class="text-center py-4 py-md-5 mb-5 bg-light border rounded-4 p-4 p-md-5">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold text-uppercase mb-3" style="font-size: 11px;">Our Mission</span>
+        <h1 class="fw-extrabold text-dark mb-3" style="font-size: 2.25rem; letter-spacing: -0.5px;">About TrendyKart</h1>
+        <p class="text-muted mx-auto mb-0" style="max-width: 680px; font-size: 16px; line-height: 1.6;">
+            Premium tech, curated for you. We bring the latest phones, laptops, wearables and audio together in one clean, fast, and transparent shopping experience.
         </p>
-        <p class="text-muted mx-auto mb-3" style="max-width: 650px;">
-            Browse products, enjoy smooth checkout,
-            and manage your orders easily — all in one place.
-        </p>
-        <p class="mb-1 fw-semibold">Need Help?</p>
-        <a href="mailto:trendykart.app@gmail.com"
-           class="text-decoration-none d-block mb-3">
-            trendykart.app@gmail.com
-        </a>
-        <a asp-controller="Product"
-           asp-action="Index"
-           class="btn btn-primary px-4">
-            Explore Products
-        </a>
     </div>
-</section>
+
+    @* Features Grid *@
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4 mb-5">
+        <div class="col">
+            <div class="about-card-box h-100 d-flex flex-column">
+                <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px; font-size: 20px;">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="fw-extrabold text-dark fs-5 mb-2">Fast &amp; Simple</h3>
+                <p class="text-muted small mb-0 lh-relaxed">Browse products, add to cart and check out smoothly — no clutter, no friction.</p>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="about-card-box h-100 d-flex flex-column">
+                <div class="bg-success-subtle text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px; font-size: 20px;">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <h3 class="fw-extrabold text-dark fs-5 mb-2">Trusted Quality</h3>
+                <p class="text-muted small mb-0 lh-relaxed">Only genuine products from brands you love, backed by a 1-year brand warranty.</p>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="about-card-box h-100 d-flex flex-column">
+                <div class="bg-info-subtle text-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px; font-size: 20px;">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <h3 class="fw-extrabold text-dark fs-5 mb-2">Quick Delivery</h3>
+                <p class="text-muted small mb-0 lh-relaxed">Free 1–2 day express delivery on eligible orders with real-time order tracking.</p>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="about-card-box h-100 d-flex flex-column">
+                <div class="bg-warning-subtle text-warning-emphasis rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px; font-size: 20px;">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3 class="fw-extrabold text-dark fs-5 mb-2">Here to Help</h3>
+                <p class="text-muted small mb-0 lh-relaxed">Our support team is just a message away, ready to help before and after your purchase.</p>
+            </div>
+        </div>
+    </div>
+
+    @* Bottom CTA Banner *@
+    <div class="p-4 p-md-5 bg-dark text-white rounded-4 text-center my-5 shadow-lg position-relative overflow-hidden">
+        <h2 class="fw-extrabold text-white mb-2" style="font-size: 1.85rem;">Ready to explore?</h2>
+        <p class="text-white-50 mb-4 mx-auto" style="max-width: 500px; font-size: 15px;">Discover the newest arrivals, tech gadgets, and best deals across our store.</p>
+        <a asp-controller="Product" asp-action="Index" class="btn btn-light btn-lg rounded-3 fw-bold px-4 py-2.5 shadow" style="font-size: 14px;">Explore Products <i class="fas fa-arrow-right ms-2"></i></a>
+    </div>
+</div>

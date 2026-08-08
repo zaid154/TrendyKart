@@ -1,0 +1,105 @@
+@model List<TrendyKart.Models.Payment>
+@{
+    ViewData["Title"] = "Payments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-size: 20px; font-weight: 700; color: #0F172A; margin: 0;">Payment Transactions</h2>
+        <small style="color: #64748B;">Total @Model.Count() payment logs recorded</small>
+    </div>
+    <a asp-action="Dashboard" class="btn btn-outline-dark btn-sm" style="padding: 9px 18px; border-radius: 8px; font-weight: 600;">
+        <i class="fas fa-arrow-left me-1"></i> Dashboard
+    </a>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    
+    <div class="table-responsive">
+        <table class="table align-middle" style="margin: 0;">
+            <thead>
+                <tr style="border-bottom: 2px solid #F1F5F9; font-size: 12px; text-transform: uppercase; color: #64748B; letter-spacing: 0.5px;">
+                    <th style="padding-bottom: 12px;">Payment ID</th>
+                    <th style="padding-bottom: 12px;">Order ID</th>
+                    <th style="padding-bottom: 12px;">Method</th>
+                    <th style="padding-bottom: 12px;">Razorpay Ref ID</th>
+                    <th style="padding-bottom: 12px;">Amount</th>
+                    <th style="padding-bottom: 12px;">Status</th>
+                    <th style="padding-bottom: 12px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5" style="color: #64748B;">
+                            <i class="fas fa-credit-card mb-3" style="font-size: 32px; display: block; color: #CBD5E1;"></i>
+                            No payment transactions recorded yet.
+                        </td>
+                    </tr>
+                }
+                @foreach (var p in Model)
+                {
+                    <tr style="border-bottom: 1px solid #F1F5F9;">
+                        <td style="font-weight: 700; font-size: 13px; color: #0F172A;">#@p.PaymentID</td>
+                        <td style="font-weight: 600; font-size: 14px; color: #3B82F6;">#@p.OrderID</td>
+                        <td>
+                            <span style="background: #F1F5F9; color: #334155; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
+                                @(string.IsNullOrEmpty(p.PaymentMethod) ? "Razorpay" : p.PaymentMethod)
+                            </span>
+                        </td>
+                        <td style="font-family: monospace; font-size: 12px; color: #475569;">
+                            @(string.IsNullOrEmpty(p.RazorpayPaymentId) ? ("PAY_REF_" + p.PaymentID) : p.RazorpayPaymentId)
+                        </td>
+                        <td style="font-size: 15px; font-weight: 700; color: #0F172A;">
+                            ₹@p.Amount.ToString("N0")
+                        </td>
+                        <td>
+                            @if (p.PaymentStatus == "Paid")
+                            {
+                                <span style="background: #DCFCE7; color: #15803D; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                    <i class="fas fa-check-circle me-1"></i> Paid
+                                </span>
+                            }
+                            else if (p.PaymentStatus == "Refund Initiated")
+                            {
+                                <span style="background: #E0F2FE; color: #0369A1; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                    <i class="fas fa-rotate-left me-1"></i> Refund Initiated
+                                </span>
+                            }
+                            else if (p.PaymentStatus == "Failed")
+                            {
+                                <span style="background: #FEE2E2; color: #B91C1C; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                    <i class="fas fa-times-circle me-1"></i> Failed
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="background: #FEF3C7; color: #B45309; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                    <i class="fas fa-clock me-1"></i> Pending
+                                </span>
+                            }
+                        </td>
+                        <td style="text-align: right;">
+                            @if (p.PaymentStatus != "Paid")
+                            {
+                                <form asp-action="UpdatePaymentStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="paymentId" value="@p.PaymentID" />
+                                    <input type="hidden" name="status" value="Paid" />
+                                    <button type="submit" class="btn btn-success btn-sm" style="font-size: 12px; font-weight: 600; border-radius: 6px;">Mark Paid</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span style="font-size: 12px; color: #94A3B8; font-weight: 500;">Verified</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

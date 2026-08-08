@@ -2,133 +2,381 @@
 @{
     ViewData["Title"] = "Orders Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var pendingCount = Model.Count(o => o.Status == "Order Placed" || string.IsNullOrEmpty(o.Status));
+    var shippedCount = Model.Count(o => o.Status == "Shipped");
+    var deliveredCount = Model.Count(o => o.Status == "Delivered");
+    var cancelledCount = Model.Count(o => o.Status == "Cancelled");
+    var totalRevenue = Model.Where(o => o.Status != "Cancelled").Sum(o => o.TotalAmount);
 }
-<div class="row">
-    <div class="col-12">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Orders Management</h4>
-            <a asp-action="Dashboard" class="btn btn-sm btn-outline-dark">
-                Back
-            </a>
+
+<style>
+    .orders-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .orders-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-mini-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .stat-mini-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .stat-mini-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.1;
+    }
+
+    .orders-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+
+    .orders-filter-bar {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fafafa;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+    }
+
+    .filter-btn {
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+
+    /* ZERO HORIZONTAL SCROLL FIXED TABLE */
+    .orders-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .orders-table th {
+        background: #f8fafc;
+        padding: 12px 16px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .orders-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        font-size: 13px;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+
+    .orders-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .orders-table tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    .customer-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        color: #334155;
+        font-weight: 700;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .badge-status {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+    .badge-placed { background: #fef3c7; color: #b45309; }
+    .badge-shipped { background: #dbeafe; color: #1d4ed8; }
+    .badge-delivered { background: #dcfce7; color: #15803d; }
+    .badge-cancelled { background: #fee2e2; color: #b91c1c; }
+
+    .btn-action-sm {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.1s ease;
+    }
+</style>
+
+<div class="orders-header">
+    <div>
+        <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.4px;">Orders Directory</h2>
+        <div style="font-size: 13px; color: #64748b; margin-top: 2px;">Manage fulfillment, shipping status & customer orders</div>
+    </div>
+    <a asp-action="Dashboard" class="btn btn-outline-dark btn-sm" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+        <i class="fas fa-arrow-left me-1"></i> Dashboard
+    </a>
+</div>
+
+<!-- TOP STATS METRICS -->
+<div class="orders-stats-grid">
+    <div class="stat-mini-card">
+        <div class="stat-mini-label">Total Orders</div>
+        <div class="stat-mini-value">@Model.Count</div>
+    </div>
+    <div class="stat-mini-card">
+        <div class="stat-mini-label">Pending Shipping</div>
+        <div class="stat-mini-value" style="color: #d97706;">@pendingCount</div>
+    </div>
+    <div class="stat-mini-card">
+        <div class="stat-mini-label">In Transit</div>
+        <div class="stat-mini-value" style="color: #2563eb;">@shippedCount</div>
+    </div>
+    <div class="stat-mini-card">
+        <div class="stat-mini-label">Completed</div>
+        <div class="stat-mini-value" style="color: #16a34a;">@deliveredCount</div>
+    </div>
+    <div class="stat-mini-card">
+        <div class="stat-mini-label">Total Volume</div>
+        <div class="stat-mini-value" style="font-size: 20px;">₹@totalRevenue.ToString("N0")</div>
+    </div>
+</div>
+
+<!-- ORDERS CARD CONTAINER (ZERO SCROLL) -->
+<div class="orders-card">
+    
+    <div class="orders-filter-bar">
+        <div class="filter-pills">
+            <button class="filter-btn active" onclick="filterOrders('all')">All Orders (@Model.Count)</button>
+            <button class="filter-btn" onclick="filterOrders('Order Placed')">Pending (@pendingCount)</button>
+            <button class="filter-btn" onclick="filterOrders('Shipped')">Shipped (@shippedCount)</button>
+            <button class="filter-btn" onclick="filterOrders('Delivered')">Delivered (@deliveredCount)</button>
+            <button class="filter-btn" onclick="filterOrders('Cancelled')">Cancelled (@cancelledCount)</button>
         </div>
-        <!-- Content Box -->
-        <div class="p-3">
-            <div class="table-responsive">
-                <table class="table custom-table align-middle text-center">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th style="width:300px;">Items</th>
-                            <th>Status</th>
-                            <th>Payment</th>
-                            <th style="width:300px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in Model)
+        <div style="font-size: 12px; color: #64748b; font-weight: 500;">
+            Showing @Model.Count orders
+        </div>
+    </div>
+
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">Order ID</th>
+                <th style="width: 22%;">Customer</th>
+                <th style="width: 26%;">Items Ordered</th>
+                <th style="width: 24%;">Delivery Address</th>
+                <th style="width: 18%; text-align: right;">Status & Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 48px; color: #64748b;">
+                        <i class="fas fa-box-open mb-2" style="font-size: 36px; color: #cbd5e1; display: block;"></i>
+                        <div style="font-weight: 600; font-size: 15px; color: #334155;">No orders received yet</div>
+                        <div style="font-size: 13px; color: #94a3b8;">New customer purchases will appear here automatically.</div>
+                    </td>
+                </tr>
+            }
+            @foreach (var order in Model)
+            {
+                var initials = !string.IsNullOrEmpty(order.Customer?.FullName) 
+                    ? string.Join("", order.Customer.FullName.Split(' ').Select(n => n.FirstOrDefault())).ToUpper() 
+                    : "CU";
+                if (initials.Length > 2) initials = initials.Substring(0, 2);
+
+                <tr class="order-row" data-status="@(order.Status ?? "Order Placed")">
+                    <!-- ORDER ID & AMOUNT -->
+                    <td>
+                        <div style="font-weight: 800; font-size: 14px; color: #0f172a;">#@order.OrderID</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 4px;">₹@order.TotalAmount.ToString("N0")</div>
+                        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">@order.OrderDate.ToString("dd MMM, hh:mm tt")</div>
+                    </td>
+
+                    <!-- CUSTOMER INFO -->
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="customer-avatar">@initials</div>
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="font-weight: 700; font-size: 13.5px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    @(order.Customer?.FullName ?? "Guest Customer")
+                                </div>
+                                <div style="font-size: 11.5px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@order.Email</div>
+                                <div style="font-size: 11px; color: #94a3b8;">Ph: @order.Phone</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- ITEMS -->
+                    <td>
+                        @if (order.OrderItems != null && order.OrderItems.Any())
                         {
-                            <tr>
-                                <!-- ORDER ID -->
-                                <td><strong>#@order.OrderID</strong></td>
-                                <!-- CUSTOMER -->
-                                <td>@order.Customer?.FullName</td>
-                                <!-- ITEMS -->
-                                <td class="text-start">
-                                    @if (order.OrderItems != null && order.OrderItems.Any())
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                @foreach (var item in order.OrderItems.Take(2))
+                                {
+                                    <div style="font-size: 12.5px; font-weight: 600; color: #1e293b; line-height: 1.3; display: flex; align-items: center; gap: 6px;">
+                                        <span style="color: #3b82f6; font-size: 10px;">●</span>
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">@item.ProductName</span>
+                                        <span style="color: #64748b; font-size: 11px; font-weight: 500;">(x@item.Quantity)</span>
+                                    </div>
+                                }
+                                @if (order.OrderItems.Count > 2)
+                                {
+                                    <div style="font-size: 11px; color: #64748b; font-weight: 500; margin-left: 12px;">+@(order.OrderItems.Count - 2) more item(s)</div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span style="font-size: 12px; color: #64748b;">1 Product Line Item</span>
+                        }
+                    </td>
+
+                    <!-- ADDRESS -->
+                    <td>
+                        <div style="font-size: 12px; font-weight: 500; color: #334155; line-height: 1.3; max-width: 220px;">@order.ShippingAddress</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">@order.City, @order.State - @order.Pincode</div>
+                    </td>
+
+                    <!-- STATUS & ACTIONS -->
+                    <td style="text-align: right;">
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                            <div>
+                                @if (order.Status == "Delivered")
+                                {
+                                    <span class="badge-status badge-delivered"><i class="fas fa-check-circle"></i> Delivered</span>
+                                }
+                                else if (order.Status == "Shipped")
+                                {
+                                    <span class="badge-status badge-shipped"><i class="fas fa-truck"></i> Shipped</span>
+                                }
+                                else if (order.Status == "Cancelled")
+                                {
+                                    <span class="badge-status badge-cancelled"><i class="fas fa-times-circle"></i> Cancelled</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-placed"><i class="fas fa-clock"></i> Placed</span>
+                                }
+                            </div>
+
+                            @if (order.Status != "Delivered" && order.Status != "Cancelled")
+                            {
+                                <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                    @if (order.Status == "Order Placed" || string.IsNullOrEmpty(order.Status))
                                     {
-                                        foreach (var item in order.OrderItems)
-                                        {
-                                            <div class="mb-2">
-                                                <strong>@item.ProductName</strong><br />
-                                                <small>Qty: @item.Quantity</small>
-                                            </div>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No Items</span>
-                                    }
-                                </td>
-                                <!-- STATUS -->
-                                <td>
-                                    <span class="badge bg-@(
-                                        order.Status == "Delivered" ? "success" :
-                                        order.Status == "Shipped" ? "primary" :
-                                        order.Status == "Cancelled" ? "danger" :
-                                        "warning")">
-                                        @order.Status
-                                    </span>
-                                </td>
-                                <!-- PAYMENT -->
-                                <td>
-                                    <span class="badge bg-@(
-                                        order.Payment?.PaymentStatus == "Paid" ? "success" :
-                                        order.Payment?.PaymentStatus == "Failed" ? "danger" :
-                                        order.Payment?.PaymentStatus == "Refund Initiated" ? "info" :
-                                        order.Payment?.PaymentStatus == "Refund Completed" ? "success" :
-                                        order.Payment?.PaymentStatus == "Cancelled" ? "secondary" :
-                                        "warning")">
-                                        @(order.Payment?.PaymentStatus ?? "Pending")
-                                    </span>
-                                </td>
-                                <!-- ACTION -->
-                                <td>
-                                    @if (order.Status == "Order Placed")
-                                    {
-                                        <form asp-controller="Admin"
-                                              asp-action="UpdateOrderStatus"
-                                              method="post"
-                                              class="d-inline">
+                                        <form asp-controller="Admin" asp-action="UpdateOrderStatus" method="post" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="orderId" value="@order.OrderID" />
                                             <input type="hidden" name="status" value="Shipped" />
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-primary">
-                                                Mark Shipped
-                                            </button>
-                                        </form>
-                                        <form asp-controller="Admin"
-                                              asp-action="UpdateOrderStatus"
-                                              method="post"
-                                              class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="orderId" value="@order.OrderID" />
-                                            <input type="hidden" name="status" value="Cancelled" />
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger">
-                                                Cancel
-                                            </button>
+                                            <button type="submit" class="btn-action-sm" style="background: #2563eb; color: #ffffff;">Ship</button>
                                         </form>
                                     }
-                                    else if (order.Status == "Shipped")
+                                    @if (order.Status == "Shipped")
                                     {
-                                        <form asp-controller="Admin"
-                                              asp-action="UpdateOrderStatus"
-                                              method="post"
-                                              class="d-inline">
+                                        <form asp-controller="Admin" asp-action="UpdateOrderStatus" method="post" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="orderId" value="@order.OrderID" />
                                             <input type="hidden" name="status" value="Delivered" />
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-success">
-                                                Mark Delivered
-                                            </button>
+                                            <button type="submit" class="btn-action-sm" style="background: #16a34a; color: #ffffff;">Deliver</button>
                                         </form>
                                     }
-                                    else
-                                    {
-                                        <span class="text-muted fw-semibold">
-                                            No Action Required
-                                        </span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                                    <form asp-controller="Admin" asp-action="UpdateOrderStatus" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderID" />
+                                        <input type="hidden" name="status" value="Cancelled" />
+                                        <button type="submit" onclick="return confirm('Are you sure you want to cancel Order #@order.OrderID?')" class="btn-action-sm" style="background: #ffffff; color: #dc2626; border: 1px solid #fca5a5;">Cancel</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
+
+@section Scripts {
+    <script>
+        function filterOrders(status) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const rows = document.querySelectorAll('.order-row');
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                if (status === 'all' || rowStatus === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

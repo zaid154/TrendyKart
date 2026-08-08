@@ -1,55 +1,714 @@
-﻿@model TrendyKart.Models.Product
+@model TrendyKart.Models.Product
 @{
     ViewData["Title"] = "Edit Product";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-<div class="row">
-    <div class="col-12">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Edit Product</h4>
 
-            <a asp-action="Products" class="btn btn-sm btn-outline-dark">
-                Back
-            </a>
+<style>
+    .editor-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .section-title-bar {
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section-title-bar h4 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .field-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .editor-input {
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        font-size: 13px;
+        padding: 8px 12px;
+        background-color: #ffffff;
+        color: #0f172a;
+        font-weight: 500;
+        transition: all 0.15s ease;
+    }
+
+    .editor-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    /* VARIANT CARD ACCORDION DESIGN */
+    .variant-card-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .variant-card-box:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .variant-header-bar {
+        background: #f8fafc;
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #e2e8f0;
+        cursor: pointer;
+    }
+
+    .variant-title-text {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .variant-body-content {
+        padding: 20px;
+        background: #ffffff;
+    }
+
+    .variant-img-preview {
+        width: 50px;
+        height: 50px;
+        border-radius: 6px;
+        object-fit: contain;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        padding: 2px;
+    }
+
+    .color-swatch-circle {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        display: inline-block;
+    }
+</style>
+
+<form asp-action="EditProduct" method="post" enctype="multipart/form-data" id="editProductForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ProductID" />
+    <input type="hidden" asp-for="ImageUrl" />
+    <input type="hidden" asp-for="Price" />
+    <input type="hidden" asp-for="OldPrice" />
+
+    <div class="row g-4">
+        
+        <!-- SECTION 1: GENERAL PRODUCT DETAILS -->
+        <div class="col-12">
+            <div class="editor-card">
+                <div class="section-title-bar d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">General Information</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <a asp-action="Products" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px; font-weight: 600; font-size: 13px; padding: 6px 16px;">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-sm" style="background: #2563eb; border: none; border-radius: 8px; font-weight: 600; font-size: 13px; padding: 6px 20px;">
+                            <i class="fas fa-check me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="field-label">Product Name *</label>
+                        <input asp-for="Name" class="form-control editor-input" placeholder="e.g. Apple iPhone 17 Pro Max" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Brand" class="field-label">Brand</label>
+                        <input asp-for="Brand" class="form-control editor-input" placeholder="e.g. Apple" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Category" class="field-label">Category *</label>
+                        <input asp-for="Category" class="form-control editor-input" placeholder="e.g. Phones" required />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Stock" class="field-label">Total Stock Quantity *</label>
+                        <input asp-for="Stock" type="number" class="form-control editor-input" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SKU" class="field-label">Master SKU</label>
+                        <input asp-for="SKU" class="form-control editor-input" placeholder="e.g. IP17-BASE" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="field-label">Description</label>
+                    <textarea asp-for="Description" class="form-control editor-input" rows="2" placeholder="Product overview description..."></textarea>
+                </div>
+
+                <!-- FLAGS & OPTIONS -->
+                <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; gap: 24px; align-items: center;">
+                    <span style="font-size: 12px; font-weight: 700; color: #475569;">Visibility Options:</span>
+                    <div class="form-check">
+                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox" id="chkFeatured" style="accent-color: #2563eb;" />
+                        <label class="form-check-label" for="chkFeatured" style="font-size: 13px; font-weight: 600; color: #0f172a;">Featured</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="IsBestseller" class="form-check-input" type="checkbox" id="chkBestseller" style="accent-color: #2563eb;" />
+                        <label class="form-check-label" for="chkBestseller" style="font-size: 13px; font-weight: 600; color: #0f172a;">Bestseller</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="FreeShipping" class="form-check-input" type="checkbox" id="chkShipping" style="accent-color: #2563eb;" />
+                        <label class="form-check-label" for="chkShipping" style="font-size: 13px; font-weight: 600; color: #0f172a;">Free Shipping</label>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- Content Box -->
-        <div class="border rounded p-4">
-            <form asp-action="EditProduct" method="post" enctype="multipart/form-data">
-                <input type="hidden" asp-for="ProductID" />
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label"></label>
-                    <input asp-for="Name" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label asp-for="Description" class="form-label"></label>
-                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="Category" class="form-label"></label>
-                    <input asp-for="Category" class="form-control" />
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Price" class="form-label"></label>
-                        <input asp-for="Price" type="number" step="0.01" class="form-control" />
+
+        <!-- SECTION 2: PRODUCT GALLERY (PHOTOS & VIDEO DEMOS) -->
+        <div class="col-12">
+            <div class="editor-card">
+                <div class="section-title-bar d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Product Gallery (Photos & Video Demos)</h4>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                            Upload high-resolution product photos and MP4/WebM video trailers for this product.
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Stock" class="form-label"></label>
-                        <input asp-for="Stock" type="number" class="form-control" />
-                    </div>
-                </div>
-                <hr class="my-4" />
-                <div class="mb-3">
-                    <label asp-for="ImageFile" class="form-label">
-                        Change Image (optional)
+                    <label class="btn btn-outline-primary btn-sm mb-0" style="border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;">
+                        <i class="fas fa-cloud-arrow-up me-1"></i> Upload Photos / Video
+                        <input type="file" name="mediaFiles" multiple accept="image/*,video/*" style="display: none;" onchange="document.getElementById('editProductForm').submit();" />
                     </label>
-                    <input asp-for="ImageFile" type="file" class="form-control" />
                 </div>
-                <button type="submit" class="btn btn-dark">
-                    Update Product
-                </button>
-            </form>
+
+                <div class="row g-3">
+                    @if (Model.MediaFiles != null && Model.MediaFiles.Any())
+                    {
+                        foreach (var media in Model.MediaFiles)
+                        {
+                            <div class="col-md-3 col-6">
+                                <div style="position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; text-align: center;">
+                                    @if (media.MediaType == "Video" || media.MediaUrl.EndsWith(".mp4") || media.MediaUrl.EndsWith(".webm"))
+                                    {
+                                        <video src="@media.MediaUrl" controls style="width: 100%; height: 140px; object-fit: cover;"></video>
+                                        <span class="badge bg-dark" style="position: absolute; top: 6px; left: 6px; font-size: 10px;">VIDEO DEMO</span>
+                                    }
+                                    else
+                                    {
+                                        <img src="@media.MediaUrl" style="width: 100%; height: 140px; object-fit: contain; padding: 6px; background: #ffffff;" />
+                                        <span class="badge bg-secondary" style="position: absolute; top: 6px; left: 6px; font-size: 10px;">PHOTO</span>
+                                    }
+                                    <div style="padding: 6px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 11px; color: #475569; font-weight: 600;">@media.MediaType</span>
+                                        <a href="/Admin/DeleteProductMedia/@media.MediaID" class="btn btn-link text-danger p-0" style="font-size: 12px;" onclick="return confirm('Delete this media file?');">
+                                            <i class="fas fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 24px; text-align: center; background: #f8fafc;">
+                                <i class="fas fa-photo-film text-muted" style="font-size: 28px; margin-bottom: 8px;"></i>
+                                <div style="font-size: 13px; font-weight: 600; color: #334155;">No media files uploaded yet</div>
+                                <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Upload high-res product photos or MP4 video trailers</div>
+                                <label class="btn btn-primary btn-sm" style="border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                    <i class="fas fa-upload me-1"></i> Choose Photos or Video
+                                    <input type="file" name="mediaFiles" multiple accept="image/*,video/*" style="display: none;" onchange="document.getElementById('editProductForm').submit();" />
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
+
+        <!-- SECTION 3: PRODUCT VARIANTS -->
+        <div class="col-12">
+            <div class="editor-card">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                    <div>
+                        <h4 style="font-size: 15px; font-weight: 700; color: #0f172a; margin: 0;">
+                            Product Variants
+                        </h4>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                            Add and manage pricing, stock, colors, images, and specifications for each product variant.
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-dark btn-sm" onclick="addNewVariantCard()" style="border-radius: 6px; font-weight: 600; font-size: 12px; padding: 6px 14px; background: #0f172a;">
+                        <i class="fas fa-plus me-1"></i> Add Variant
+                    </button>
+                </div>
+
+                <!-- DYNAMIC VARIANT CARDS CONTAINER -->
+                <div id="variantCardsContainer">
+                    @if (Model.Variants != null && Model.Variants.Any())
+                    {
+                        int vIdx = 0;
+                        foreach (var v in Model.Variants)
+                        {
+                            <div class="variant-card-box" data-index="@vIdx">
+                                
+                                <!-- VARIANT ACCORDION HEADER -->
+                                <div class="variant-header-bar" onclick="toggleVariantCard(this)">
+                                    <div class="variant-title-text">
+                                        <span class="color-swatch-circle" style="background: @(string.IsNullOrEmpty(v.ColorHex) ? "#000000" : v.ColorHex);"></span>
+                                        <span>@(string.IsNullOrEmpty(v.VariantName) ? "New Variant" : v.VariantName)</span>
+                                        @if (v.IsDefault)
+                                        {
+                                            <span class="badge bg-primary" style="font-size: 10px;">DEFAULT</span>
+                                        }
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 14px;">
+                                        <span style="font-size: 13px; font-weight: 700; color: #0f172a;">₹@v.Price.ToString("N0")</span>
+                                        <span style="font-size: 12px; font-weight: 600; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">Stock: @v.Stock</span>
+                                        <button type="button" class="btn btn-link text-danger p-0" onclick="event.stopPropagation(); removeVariantCard(this);" title="Delete Variant">
+                                            <i class="fas fa-trash-can" style="font-size: 13px;"></i>
+                                        </button>
+                                        <i class="fas fa-chevron-down text-muted" style="font-size: 12px;"></i>
+                                    </div>
+                                </div>
+
+                                <!-- VARIANT DETAILED EDIT FORM -->
+                                <div class="variant-body-content">
+                                    <input type="hidden" name="Variants[@vIdx].VariantID" value="@v.VariantID" />
+
+                                    <!-- ROW 1: NAME & SKU -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-7">
+                                            <label class="field-label">Variant Name *</label>
+                                            <input type="text" name="Variants[@vIdx].VariantName" value="@v.VariantName" class="form-control editor-input" placeholder="e.g. Space Black - 256GB" required />
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="field-label">SKU</label>
+                                            <input type="text" name="Variants[@vIdx].SKU" value="@v.SKU" class="form-control editor-input" placeholder="SKU-256-BLK" />
+                                        </div>
+                                    </div>
+
+                                    <!-- ROW 2: PRICE, OLD PRICE, STOCK, DEFAULT -->
+                                    <div class="row g-3 mb-3 align-items-end">
+                                        <div class="col-md-3">
+                                            <label class="field-label">Price (₹) *</label>
+                                            <input type="number" step="0.01" name="Variants[@vIdx].Price" value="@v.Price" class="form-control editor-input" required />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="field-label">Compare-at Price / MRP (₹)</label>
+                                            <input type="number" step="0.01" name="Variants[@vIdx].OldPrice" value="@v.OldPrice" class="form-control editor-input" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="field-label">Stock Quantity *</label>
+                                            <input type="number" name="Variants[@vIdx].Stock" value="@v.Stock" class="form-control editor-input" required />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check mb-2">
+                                                <input type="radio" name="defaultVariantRadio" @(v.IsDefault ? "checked" : "") onchange="setDefaultVariantFlag(this, @vIdx)" style="accent-color: #2563eb;" />
+                                                <input type="hidden" name="Variants[@vIdx].IsDefault" value="@(v.IsDefault ? "true" : "false")" class="is-default-hidden" />
+                                                <label class="form-check-label" style="font-size: 12px; font-weight: 600; color: #0f172a;">Default Variant</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ROW 3: COLOR PICKER, HEX CODE, COLOR NAME -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-2">
+                                            <label class="field-label">Color Picker</label>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <input type="color" value="@(string.IsNullOrEmpty(v.ColorHex) || !v.ColorHex.StartsWith("#") ? "#000000" : v.ColorHex)" class="form-control form-control-color color-picker-element" style="width: 44px; height: 38px; padding: 2px; border-radius: 6px; cursor: pointer;" oninput="updateVariantColorFromPicker(this)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="field-label">Color Code / Hex</label>
+                                            <input type="text" name="Variants[@vIdx].ColorHex" value="@v.ColorHex" class="form-control editor-input hex-code-input" placeholder="e.g. #1C1B1B or Red" oninput="updateVariantColorFromInput(this)" />
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="field-label">Color Name</label>
+                                            <input type="text" name="Variants[@vIdx].ColorName" value="@v.ColorName" class="form-control editor-input color-name-input" placeholder="e.g. Space Black or Titanium White" oninput="updateVariantColorFromInput(this)" />
+                                        </div>
+                                    </div>
+
+                                    <!-- ROW 4: VARIANT IMAGE (LOCAL FILE UPLOAD) -->
+                                    <div class="mb-3">
+                                        <label class="field-label">Variant Image</label>
+                                        <div class="d-flex gap-3 align-items-center">
+                                            <img src="@(string.IsNullOrEmpty(v.ImageUrl) ? (string.IsNullOrEmpty(Model.ImageUrl) ? "/uploads/no-image.png" : Model.ImageUrl) : v.ImageUrl)" class="variant-img-preview" alt="Variant thumbnail" />
+                                            <div style="flex: 1;">
+                                                <input type="file" name="Variants[@vIdx].ImageFile" class="form-control editor-input" accept="image/*" onchange="previewVariantLocalFile(this)" />
+                                                <input type="hidden" name="Variants[@vIdx].ImageUrl" value="@v.ImageUrl" class="variant-image-url-hidden" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ROW 5: SHORT DESCRIPTION -->
+                                    <div class="mb-3">
+                                        <label class="field-label">Short Description</label>
+                                        <input type="text" name="Variants[@vIdx].ShortDescription" value="@v.ShortDescription" class="form-control editor-input" placeholder="Short summary for this variant..." />
+                                    </div>
+
+                                    <!-- ROW 6: DETAILED DESCRIPTION -->
+                                    <div class="mb-3">
+                                        <label class="field-label">Detailed Description</label>
+                                        <textarea name="Variants[@vIdx].LongDescription" class="form-control editor-input" rows="2" placeholder="Full details for this variant...">@v.LongDescription</textarea>
+                                    </div>
+
+                                    <!-- ROW 7: TECHNICAL SPECIFICATIONS BUILDER -->
+                                    <div class="mt-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label class="field-label mb-0" style="font-size: 13px; font-weight: 700; color: #0f172a;">
+                                                Technical Specifications
+                                            </label>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSpecRowFromBtn(this)" style="font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 600;">
+                                                <i class="fas fa-plus me-1"></i> Add Specification
+                                            </button>
+                                        </div>
+
+                                        <!-- DYNAMIC SPEC CONTAINER -->
+                                        <div class="variant-specs-list-box" data-spec-string="@v.SpecificationsJson" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                                            <!-- Dynamic Key-Value Rows rendered via JS -->
+                                        </div>
+
+                                        <input type="hidden" name="Variants[@vIdx].SpecificationsJson" value="@v.SpecificationsJson" class="specs-json-hidden" />
+                                    </div>
+
+                                </div>
+                            </div>
+                            vIdx++;
+                        }
+                    }
+                </div>
+
+            </div>
+        </div>
+
     </div>
-</div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let variantIndex = @(Model.Variants != null ? Model.Variants.Count : 0);
+
+        function toggleVariantCard(header) {
+            const body = header.nextElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                if (icon) { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up'); }
+            } else {
+                body.style.display = 'none';
+                if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+            }
+        }
+
+        function nameToHex(colorStr) {
+            if (!colorStr) return '#000000';
+            colorStr = colorStr.trim();
+            if (colorStr.startsWith('#')) {
+                if (colorStr.length === 4) {
+                    return '#' + colorStr[1] + colorStr[1] + colorStr[2] + colorStr[2] + colorStr[3] + colorStr[3];
+                }
+                if (colorStr.length === 7) return colorStr;
+            }
+            try {
+                const ctx = document.createElement('canvas').getContext('2d');
+                if (!ctx) return '#000000';
+                ctx.fillStyle = colorStr;
+                const computed = ctx.fillStyle;
+                return (computed && computed.startsWith('#')) ? computed : '#000000';
+            } catch {
+                return '#000000';
+            }
+        }
+
+        function updateVariantColorFromPicker(picker) {
+            const card = picker.closest('.variant-card-box');
+            const hexInput = card.querySelector('.hex-code-input');
+            const swatch = card.querySelector('.color-swatch-circle');
+            if (hexInput) hexInput.value = picker.value.toUpperCase();
+            if (swatch) swatch.style.background = picker.value;
+        }
+
+        function updateVariantColorFromInput(input) {
+            const card = input.closest('.variant-card-box');
+            const picker = card.querySelector('.color-picker-element');
+            const swatch = card.querySelector('.color-swatch-circle');
+            let val = input.value.trim();
+            if (val) {
+                const hex = nameToHex(val);
+                if (picker && hex && hex.startsWith('#') && hex.length === 7) {
+                    picker.value = hex;
+                }
+                if (swatch) swatch.style.background = val;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll('.hex-code-input').forEach(input => {
+                if (input.value) {
+                    updateVariantColorFromInput(input);
+                }
+            });
+            parseExistingSpecsOnLoad();
+        });
+
+        function addSpecRowFromBtn(btn) {
+            const card = btn.closest('.variant-card-box');
+            const container = card.querySelector('.variant-specs-list-box');
+            addSpecRowToContainer(container, '', '');
+        }
+
+        function addSpecRowToContainer(container, key = '', val = '') {
+            const div = document.createElement('div');
+            div.className = 'd-flex gap-2 align-items-center mb-2 spec-item-row';
+            div.innerHTML = `
+                <input type="text" class="form-control editor-input spec-key-input" placeholder="Feature (e.g. Storage)" value="${key}" style="flex: 1; font-weight: 600; color: #0f172a;" oninput="syncVariantSpecsHidden(this)" />
+                <span style="font-weight: 700; color: #94a3b8;">:</span>
+                <input type="text" class="form-control editor-input spec-val-input" placeholder="Value (e.g. 256GB)" value="${val}" style="flex: 1.5;" oninput="syncVariantSpecsHidden(this)" />
+                <button type="button" class="btn btn-outline-danger btn-sm p-1 px-2" onclick="removeSpecItemRow(this)" style="border-radius: 6px;" title="Delete Specification">
+                    <i class="fas fa-trash-can" style="font-size: 12px;"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            syncVariantSpecsHidden(container);
+        }
+
+        function removeSpecItemRow(btn) {
+            const row = btn.closest('.spec-item-row');
+            const container = row.parentElement;
+            row.remove();
+            syncVariantSpecsHidden(container);
+        }
+
+        function syncVariantSpecsHidden(element) {
+            const card = element.closest('.variant-card-box') || element;
+            if (!card) return;
+            const container = card.querySelector('.variant-specs-list-box');
+            const hidden = card.querySelector('.specs-json-hidden');
+            if (!container || !hidden) return;
+
+            const rows = container.querySelectorAll('.spec-item-row');
+            const specsArr = [];
+            rows.forEach(r => {
+                const k = r.querySelector('.spec-key-input').value.trim();
+                const v = r.querySelector('.spec-val-input').value.trim();
+                if (k && v) {
+                    specsArr.push(`${k}: ${v}`);
+                }
+            });
+            hidden.value = specsArr.join(' | ');
+        }
+
+        function parseExistingSpecsOnLoad() {
+            document.querySelectorAll('.variant-specs-list-box').forEach(container => {
+                const specStr = container.getAttribute('data-spec-string') || '';
+                container.innerHTML = '';
+                if (specStr) {
+                    const pairs = specStr.split(/\||\n/);
+                    let added = 0;
+                    pairs.forEach(pair => {
+                        const parts = pair.split(':');
+                        if (parts.length >= 2) {
+                            const key = parts[0].trim();
+                            const val = parts.slice(1).join(':').trim();
+                            if (key && val) {
+                                addSpecRowToContainer(container, key, val);
+                                added++;
+                            }
+                        }
+                    });
+                    if (added === 0 && specStr.trim()) {
+                        addSpecRowToContainer(container, 'Specification', specStr.trim());
+                    }
+                }
+            });
+        }
+
+        function previewVariantLocalFile(fileInput) {
+            const file = fileInput.files[0];
+            if (file) {
+                const card = fileInput.closest('.variant-card-box');
+                const img = card.querySelector('.variant-img-preview');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (img) img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addNewVariantCard() {
+            createVariantCard({
+                variantId: 0,
+                variantName: '',
+                sku: '',
+                price: '',
+                oldPrice: '',
+                stock: 10,
+                colorName: 'Black',
+                colorHex: '#000000',
+                imageUrl: '',
+                shortDescription: '',
+                longDescription: '',
+                specificationsJson: ''
+            });
+        }
+
+        function createVariantCard(data) {
+            const container = document.getElementById('variantCardsContainer');
+            const isFirst = container.children.length === 0;
+
+            const div = document.createElement('div');
+            div.className = 'variant-card-box';
+            div.setAttribute('data-index', variantIndex);
+
+            div.innerHTML = `
+                <div class="variant-header-bar" onclick="toggleVariantCard(this)">
+                    <div class="variant-title-text">
+                        <span class="color-swatch-circle" style="background: ${data.colorHex || '#000000'};"></span>
+                        <span>${data.variantName || 'New Variant'}</span>
+                        ${isFirst ? '<span class="badge bg-primary" style="font-size: 10px;">DEFAULT</span>' : ''}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #0f172a;">₹${data.price || '0'}</span>
+                        <span style="font-size: 12px; font-weight: 600; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">Stock: ${data.stock || '0'}</span>
+                        <button type="button" class="btn btn-link text-danger p-0" onclick="event.stopPropagation(); removeVariantCard(this);" title="Delete Variant">
+                            <i class="fas fa-trash-can" style="font-size: 13px;"></i>
+                        </button>
+                        <i class="fas fa-chevron-up text-muted" style="font-size: 12px;"></i>
+                    </div>
+                </div>
+
+                <div class="variant-body-content">
+                    <input type="hidden" name="Variants[${variantIndex}].VariantID" value="${data.variantId}" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="field-label">Variant Name *</label>
+                            <input type="text" name="Variants[${variantIndex}].VariantName" value="${data.variantName}" class="form-control editor-input" placeholder="e.g. Space Black - 256GB" required />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="field-label">SKU</label>
+                            <input type="text" name="Variants[${variantIndex}].SKU" value="${data.sku}" class="form-control editor-input" placeholder="SKU-256-BLK" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="field-label">Price (₹) *</label>
+                            <input type="number" step="0.01" name="Variants[${variantIndex}].Price" value="${data.price}" class="form-control editor-input" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="field-label">Compare-at Price / MRP (₹)</label>
+                            <input type="number" step="0.01" name="Variants[${variantIndex}].OldPrice" value="${data.oldPrice}" class="form-control editor-input" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="field-label">Stock Quantity *</label>
+                            <input type="number" name="Variants[${variantIndex}].Stock" value="${data.stock}" class="form-control editor-input" required />
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mb-2">
+                                <input type="radio" name="defaultVariantRadio" ${isFirst ? 'checked' : ''} onchange="setDefaultVariantFlag(this, ${variantIndex})" style="accent-color: #2563eb;" />
+                                <input type="hidden" name="Variants[${variantIndex}].IsDefault" value="${isFirst ? 'true' : 'false'}" class="is-default-hidden" />
+                                <label class="form-check-label" style="font-size: 12px; font-weight: 600; color: #0f172a;">Default Variant</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-2">
+                            <label class="field-label">Color Picker</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" value="${data.colorHex || '#000000'}" class="form-control form-control-color color-picker-element" style="width: 44px; height: 38px; padding: 2px; border-radius: 6px; cursor: pointer;" oninput="updateVariantColorFromPicker(this)" />
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="field-label">Color Code / Hex</label>
+                            <input type="text" name="Variants[${variantIndex}].ColorHex" value="${data.colorHex || '#000000'}" class="form-control editor-input hex-code-input" placeholder="e.g. #1C1B1B or Red" oninput="updateVariantColorFromInput(this)" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="field-label">Color Name</label>
+                            <input type="text" name="Variants[${variantIndex}].ColorName" value="${data.colorName}" class="form-control editor-input color-name-input" placeholder="e.g. Space Black or Titanium White" oninput="updateVariantColorFromInput(this)" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="field-label">Variant Image</label>
+                        <div class="d-flex gap-3 align-items-center">
+                            <img src="${data.imageUrl || '/uploads/no-image.png'}" class="variant-img-preview" alt="Variant thumbnail" />
+                            <div style="flex: 1;">
+                                <input type="file" name="Variants[${variantIndex}].ImageFile" class="form-control editor-input" accept="image/*" onchange="previewVariantLocalFile(this)" />
+                                <input type="hidden" name="Variants[${variantIndex}].ImageUrl" value="${data.imageUrl}" class="variant-image-url-hidden" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="field-label">Short Description</label>
+                        <input type="text" name="Variants[${variantIndex}].ShortDescription" value="${data.shortDescription}" class="form-control editor-input" placeholder="Short summary for this variant..." />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="field-label">Detailed Description</label>
+                        <textarea name="Variants[${variantIndex}].LongDescription" class="form-control editor-input" rows="2" placeholder="Full details for this variant...">${data.longDescription}</textarea>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="field-label mb-0" style="font-size: 13px; font-weight: 700; color: #0f172a;">
+                                Technical Specifications
+                            </label>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSpecRowFromBtn(this)" style="font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 600;">
+                                <i class="fas fa-plus me-1"></i> Add Specification
+                            </button>
+                        </div>
+
+                        <div class="variant-specs-list-box" data-spec-string="${data.specificationsJson || ''}" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                            <!-- Dynamic Key-Value Rows rendered via JS -->
+                        </div>
+
+                        <input type="hidden" name="Variants[${variantIndex}].SpecificationsJson" value="${data.specificationsJson}" class="specs-json-hidden" />
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(div);
+            parseExistingSpecsOnLoad();
+            variantIndex++;
+        }
+
+        function removeVariantCard(btn) {
+            const card = btn.closest('.variant-card-box');
+            card.remove();
+        }
+
+        function setDefaultVariantFlag(radio, idx) {
+            document.querySelectorAll('.is-default-hidden').forEach(el => el.value = 'false');
+            radio.closest('.variant-card-box').querySelector('.is-default-hidden').value = 'true';
+        }
+    </script>
+}

@@ -1,84 +1,95 @@
-﻿@model IEnumerable<TrendyKart.Models.Customer>
+@model IEnumerable<TrendyKart.Models.Customer>
 @{
-    ViewData["Title"] = "Manage Customers";
+    ViewData["Title"] = "Manage Users";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-<div class="row">
-    <div class="col-12">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Manage Customers</h4>
 
-            <a asp-action="Dashboard" class="btn btn-sm btn-outline-dark">
-                Back
-            </a>
-        </div>
-        <!-- Content Box -->
-        <div class="border rounded p-4">
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                            <th style="width:180px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var user in Model)
-                        {
-                            <tr>
-                                <td>@user.CustomerID</td>
-                                <td>@user.FullName</td>
-                                <td>@user.Email</td>
-                                <td>@user.Phone</td>
-                                <td>
-                                    @if (user.IsBlocked)
-                                    {
-                                        <span class="badge bg-danger">Blocked</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-success">Active</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2">
-
-                                        <!-- View -->
-                                        <a asp-action="CustomerDetails"
-                                           asp-route-id="@user.CustomerID"
-                                           class="btn btn-sm btn-outline-dark">
-                                            View
-                                        </a>
-                                        @if (user.IsBlocked)
-                                        {
-                                            <a asp-action="UnblockUser"
-                                               asp-route-id="@user.CustomerID"
-                                               class="btn btn-sm btn-outline-success">
-                                                Unblock
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a asp-action="BlockUser"
-                                               asp-route-id="@user.CustomerID"
-                                               class="btn btn-sm btn-outline-danger"
-                                               onclick="return confirm('Are you sure you want to block this user?')">
-                                                Block
-                                            </a>
-                                        }
-
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-size: 20px; font-weight: 700; color: #0F172A; margin: 0;">Registered Customers</h2>
+        <small style="color: #64748B;">Total @Model.Count() registered user accounts</small>
     </div>
+    <a asp-action="Dashboard" class="btn btn-outline-dark btn-sm" style="padding: 9px 18px; border-radius: 8px; font-weight: 600;">
+        <i class="fas fa-arrow-left me-1"></i> Dashboard
+    </a>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    
+    <div class="table-responsive">
+        <table class="table align-middle" style="margin: 0;">
+            <thead>
+                <tr style="border-bottom: 2px solid #F1F5F9; font-size: 12px; text-transform: uppercase; color: #64748B; letter-spacing: 0.5px;">
+                    <th style="padding-bottom: 12px;">ID</th>
+                    <th style="padding-bottom: 12px;">Customer</th>
+                    <th style="padding-bottom: 12px;">Email Address</th>
+                    <th style="padding-bottom: 12px;">Phone</th>
+                    <th style="padding-bottom: 12px;">Account Status</th>
+                    <th style="padding-bottom: 12px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5" style="color: #64748B;">
+                            <i class="fas fa-users-slash mb-3" style="font-size: 32px; display: block; color: #CBD5E1;"></i>
+                            No registered users found.
+                        </td>
+                    </tr>
+                }
+                @foreach (var user in Model)
+                {
+                    var initial = string.IsNullOrEmpty(user.FullName) ? "U" : user.FullName.Substring(0, 1).ToUpper();
+                    <tr style="border-bottom: 1px solid #F1F5F9;">
+                        <td style="font-weight: 600; font-size: 13px; color: #64748B;">#@user.CustomerID</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #0F172A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                                    @initial
+                                </div>
+                                <div style="font-weight: 600; font-size: 14px; color: #0F172A;">@user.FullName</div>
+                            </div>
+                        </td>
+                        <td style="font-size: 14px; color: #334155;">@user.Email</td>
+                        <td style="font-size: 13px; color: #64748B;">@(string.IsNullOrEmpty(user.Phone) ? "N/A" : user.Phone)</td>
+                        <td>
+                            @if (user.IsBlocked)
+                            {
+                                <span style="background: #FEE2E2; color: #B91C1C; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                    <i class="fas fa-user-lock me-1"></i> Blocked
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="background: #DCFCE7; color: #15803D; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                    <i class="fas fa-user-check me-1"></i> Active User
+                                </span>
+                            }
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <a asp-action="CustomerDetails" asp-route-id="@user.CustomerID" class="btn btn-light btn-sm" style="border: 1px solid #E2E8F0; border-radius: 6px; font-size: 12px; font-weight: 600;" title="View Details">
+                                    <i class="fas fa-eye me-1"></i> Details
+                                </a>
+                                @if (user.IsBlocked)
+                                {
+                                    <a asp-action="UnblockUser" asp-route-id="@user.CustomerID" class="btn btn-outline-success btn-sm" style="border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                        Unblock
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-action="BlockUser" asp-route-id="@user.CustomerID" class="btn btn-outline-danger btn-sm" style="border-radius: 6px; font-size: 12px; font-weight: 600;" onclick="return confirm('Are you sure you want to block this user?')">
+                                        Block
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
 </div>

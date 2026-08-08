@@ -1,0 +1,15 @@
+@model IEnumerable<TrendyKart.Models.Product>
+
+@if (Model != null && Model.Any())
+{
+    <div class="product-grid">
+        @foreach (var product in Model)
+        {
+            <partial name="_ProductCard" model="product" />
+        }
+    </div>
+}
+else
+{
+    <p style="color:#999; padding:20px 0;">No products here yet.</p>
+}

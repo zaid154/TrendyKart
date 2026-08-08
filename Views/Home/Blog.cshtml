@@ -1,0 +1,88 @@
+@{
+    ViewData["Title"] = "Blog";
+    Layout = "_StoreLayout";
+
+    var posts = new[] {
+        new { Tag = "Guides", Title = "iPhone 17 Pro vs 14 Pro: What's actually new", Excerpt = "From the A19 Pro chip to the titanium frame — the upgrades that matter and the ones that don't.", Date = "Jul 20, 2026", Icon = "fa-mobile-screen" },
+        new { Tag = "Audio", Title = "Galaxy Buds3 Pro: are they worth it?", Excerpt = "Adaptive ANC, Hi-Fi sound and a fresh blade design. Our quick take after a week of listening.", Date = "Jul 12, 2026", Icon = "fa-headphones" },
+        new { Tag = "Gaming", Title = "PS5 vs Xbox Series X in 2026", Excerpt = "Two powerhouse consoles, one decision. We break down performance, library and value.", Date = "Jul 03, 2026", Icon = "fa-gamepad" },
+        new { Tag = "Wearables", Title = "5 features that make the Apple Watch a daily essential", Excerpt = "Health tracking, workouts and always-on convenience — here's what keeps it on our wrist.", Date = "Jun 28, 2026", Icon = "fa-clock" },
+        new { Tag = "Cameras", Title = "Full-frame on a budget: the Sony Alpha guide", Excerpt = "Everything a first-time creator should know before jumping into full-frame mirrorless.", Date = "Jun 19, 2026", Icon = "fa-camera" },
+        new { Tag = "Computers", Title = "MacBook Air vs Pro: which one is for you?", Excerpt = "Portability or raw power? We help you pick the right Mac for how you actually work.", Date = "Jun 10, 2026", Icon = "fa-laptop" }
+    };
+}
+
+<style>
+    .page-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding-left: clamp(1rem, 3vw, 3rem);
+        padding-right: clamp(1rem, 3vw, 3rem);
+    }
+    .blog-card-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .blog-card-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+        border-color: #cbd5e1;
+    }
+    .blog-thumb-box {
+        height: 180px;
+        background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 44px;
+    }
+</style>
+
+<div class="page-container py-4">
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-4">
+        <div class="crumbs" style="font-size: 13px; color: #64748b;">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Home</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <span class="fw-bold text-dark">Blog</span>
+        </div>
+    </nav>
+
+    @* Hero Header *@
+    <div class="mb-5">
+        <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-bold text-uppercase px-3 py-1 mb-2" style="font-size: 11px;">Tech Insights</span>
+        <h1 class="fw-extrabold text-dark mb-2" style="font-size: 2.25rem; letter-spacing: -0.5px;">The TrendyKart Blog</h1>
+        <p class="text-muted mb-0" style="font-size: 15px; max-width: 600px;">
+            Reviews, buying guides and the latest in tech — straight from our team of product specialists.
+        </p>
+    </div>
+
+    @* Blog Cards Grid *@
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        @foreach (var p in posts)
+        {
+            <div class="col">
+                <article class="blog-card-box h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="blog-thumb-box position-relative">
+                            <i class="fas @p.Icon"></i>
+                            <span class="badge bg-dark text-white rounded-pill position-absolute top-0 start-0 m-3 px-3 py-1.5 fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">@p.Tag</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="fw-extrabold text-dark mb-2" style="font-size: 1.1rem; line-height: 1.35;">@p.Title</h3>
+                            <p class="text-muted small mb-0 lh-relaxed" style="font-size: 13px;">@p.Excerpt</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 pt-0 d-flex align-items-center justify-content-between text-muted small border-top-0">
+                        <span class="text-muted" style="font-size: 12px;"><i class="far fa-calendar me-1"></i> @p.Date</span>
+                        <a href="#" class="fw-bold text-dark text-decoration-none small">Read Article <i class="fas fa-arrow-right ms-1" style="font-size: 10px;"></i></a>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+</div>

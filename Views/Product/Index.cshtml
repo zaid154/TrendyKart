@@ -1,227 +1,242 @@
-﻿@model IEnumerable<TrendyKart.Models.Product>
+@model IEnumerable<TrendyKart.Models.Product>
+@using System.Text.Json
+@using TrendyKart.Models
 @{
-    ViewData["Title"] = "Products";
-    var categories = ViewBag.Categories as List<string>;
-    var cartItems = ViewBag.CartItems as List<TrendyKart.Models.Cart>;
+    ViewData["Title"] = "Catalog";
+    Layout = "_StoreLayout";
+
+    var categoryTree = ViewBag.CategoryTree as List<Category> ?? new List<Category>();
+    var filterAttributes = ViewBag.FilterAttributes as List<CategoryFilterAttribute> ?? new List<CategoryFilterAttribute>();
+    var activeAttrFilters = ViewBag.ActiveAttributeFilters as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var availableBrands = ViewBag.AvailableBrands as List<string> ?? new List<string>();
+    var cartItems = ViewBag.CartItems as List<Cart>;
+
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalProducts = ViewBag.TotalProducts ?? 0;
+
+    string search = Context.Request.Query["search"].ToString();
+    string category = ViewBag.CurrentCategory as string ?? "";
+    int? currentCatId = ViewBag.CurrentCategoryId as int?;
+    int? currentSubCatId = ViewBag.CurrentSubCategoryId as int?;
+    string currentBrand = ViewBag.CurrentBrand as string ?? "";
+    decimal? minPrice = ViewBag.MinPrice as decimal?;
+    decimal? maxPrice = ViewBag.MaxPrice as decimal?;
+    string sort = ViewBag.CurrentSort as string ?? "";
 }
-<div class="row justify-content-center mt-5">
-    <div class="col-md-11">
-        <h4 class="mb-4">Products</h4>
-        <!-- SEARCH + FILTER -->
-        <form id="filterForm"
-              method="get"
-              asp-action="Index"
-              class="row g-2 mb-4">
-            <div class="col-md-4">
-                <input type="text"
-                       name="search"
-                       value="@Context.Request.Query["search"]"
-                       class="form-control"
-                       placeholder="Search products..."
-                       oninput="autoSubmit()" />
-            </div>
-            <div class="col-md-3">
-                <select name="category"
-                        class="form-select"
-                        onchange="autoSubmit()">
-                    <option value="">All Categories</option>
-                    @if (categories != null)
-                    {
-                        foreach (var cat in categories)
-                        {
-                            <option value="@cat"
-                                selected="@(Context.Request.Query["category"] == cat ? "selected" : null)">
-                                @cat
-                            </option>
-                        }
-                    }
-                </select>
-            </div>
-        </form>
-        <!-- PRODUCT GRID -->
-        <div class="row">
-            @foreach (var product in Model)
+
+<style>
+    .catalog-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding-left: clamp(1rem, 3vw, 3rem);
+        padding-right: clamp(1rem, 3vw, 3rem);
+    }
+    .shop-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 36px;
+        align-items: start;
+    }
+    .shop-sidebar {
+        position: sticky;
+        top: 90px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .filter-list a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .filter-list a:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+    .filter-list a.active {
+        background: #0f172a;
+        color: #ffffff;
+    }
+    .product-card:hover .product-card-img {
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="catalog-container py-4">
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-4">
+        <div class="crumbs" style="font-size: 13px; color: #64748b;">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Home</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <a asp-action="Index" class="text-decoration-none text-muted">Catalog</a>
+            @if (!string.IsNullOrEmpty(category))
             {
-                var cartItem = cartItems?.FirstOrDefault(c => c.ProductID == product.ProductID);
-                <div class="col-md-4 mb-4">
-                    <div class="card p-3 h-100 d-flex flex-column">
-                        <!-- IMAGE -->
-                        <a asp-controller="Product"
-                           asp-action="Details"
-                           asp-route-id="@product.ProductID"
-                           class="text-center mb-3">
-                            <img src="@product.ImageUrl"
-                                 class="img-fluid"
-                                 style="max-height:200px; object-fit:contain;" />
-                        </a>
-                        <!-- CONTENT -->
-                        <div class="flex-grow-1">
-                            <h6>
-                                <a asp-controller="Product"
-                                   asp-action="Details"
-                                   asp-route-id="@product.ProductID"
-                                   class="text-dark text-decoration-none">
-                                    @product.Name
-                                </a>
-                            </h6>
-                            <p class="text-muted small mb-1">
-                                @product.Category
-                            </p>
-                            <p class="small">
-                                @(product.Description != null && product.Description.Length > 80
-                                    ? product.Description.Substring(0, 80) + "..."
-                                    : product.Description)
-                            </p>
-                            <h6 class="fw-semibold mb-1">
-                                ₹@product.Price
-                            </h6>
-                            <p class="small @(product.Stock > 0 ? "text-success" : "text-danger")">
-                                @(product.Stock > 0
-                                    ? $"In Stock: {product.Stock}"
-                                    : "Out of Stock")
-                            </p>
-                        </div>
-                        <!-- BUTTON AREA -->
-                        <div class="mt-2">
-                            @if (product.Stock > 0)
-                            {
-                                if (cartItem == null)
-                                {
-                                    <form class="ajax-cart-form"
-                                          data-url="/Cart/AddToCart">
-                                        <input type="hidden"
-                                               name="ProductID"
-                                               value="@product.ProductID" />
-                                        <input type="hidden"
-                                               name="Quantity"
-                                               value="1" />
-                                        <button type="submit"
-                                                class="btn btn-dark w-100">
-                                            Add to Cart
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <form class="ajax-cart-form"
-                                              data-url="/Cart/Update">
-                                            <input type="hidden"
-                                                   name="CartID"
-                                                   value="@cartItem.CartID" />
-                                            <input type="hidden"
-                                                   name="Quantity"
-                                                   value="@(cartItem.Quantity - 1)" />
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger">
-                                                -
-                                            </button>
-                                        </form>
-                                        <span class="fw-semibold">
-                                            @cartItem.Quantity
-                                        </span>
-                                        <form class="ajax-cart-form"
-                                              data-url="/Cart/Update">
-                                            <input type="hidden"
-                                                   name="CartID"
-                                                   value="@cartItem.CartID" />
-                                            <input type="hidden"
-                                                   name="Quantity"
-                                                   value="@(cartItem.Quantity + 1)" />
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-success">
-                                                +
-                                            </button>
-                                        </form>
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                <button class="btn btn-secondary w-100" disabled>
-                                    Out of Stock
-                                </button>
-                            }
-                        </div>
+                <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+                <span class="fw-bold text-dark">@category</span>
+            }
+            else
+            {
+                <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+                <span class="fw-bold text-dark">Smartphones</span>
+            }
+        </div>
+    </nav>
+
+    <div class="shop-layout">
+        @* ===== LEFT SIDEBAR FILTERS ===== *@
+        <div class="shop-sidebar">
+            <form method="get" asp-action="Index" id="filterForm">
+                <input type="hidden" name="sort" value="@sort" />
+                <input type="hidden" name="category" value="@category" />
+                <input type="hidden" name="categoryId" value="@currentCatId" />
+                <input type="hidden" name="subCategoryId" value="@currentSubCatId" />
+
+                @* Brand Accordion Block *@
+                <div class="filter-block mb-4 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="h6 fw-extrabold text-dark m-0 text-uppercase" style="letter-spacing: 0.5px;">Brand</h4>
+                        <i class="fas fa-chevron-up text-muted" style="font-size: 12px;"></i>
                     </div>
+
+                    <div class="sidebar-search mb-3">
+                        <i class="fas fa-search text-muted"></i>
+                        <input type="text" name="search" value="@search" placeholder="Search brand or model..." class="form-control rounded-3" onchange="this.form.submit()" style="padding-left: 36px; font-size: 13px;" />
+                    </div>
+
+                    <div class="d-flex flex-column gap-2" style="max-height: 260px; overflow-y: auto; padding-right: 4px;">
+                        @if (availableBrands.Any())
+                        {
+                            foreach (var b in availableBrands)
+                            {
+                                bool isChecked = currentBrand == b;
+                                <label class="d-flex align-items-center justify-content-between p-2 rounded-2 text-dark cursor-pointer sidebar-brand-label @(isChecked ? "bg-light font-bold" : "")" style="font-size: 14px; cursor: pointer;">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <input type="radio" name="brand" value="@b" checked="@isChecked" onchange="this.form.submit()" class="form-check-input mt-0" style="accent-color: #0f172a;" />
+                                        <span>@b</span>
+                                    </span>
+                                    <span class="badge bg-slate-100 text-muted rounded-pill font-semibold" style="font-size: 11px;">110</span>
+                                </label>
+                            }
+                        }
+                        else
+                        {
+                            foreach (var b in new string[] { "Apple", "Samsung", "Xiaomi", "Poco", "OPPO", "Honor", "Motorola", "Nokia", "Realme" })
+                            {
+                                bool isChecked = currentBrand == b;
+                                <label class="d-flex align-items-center justify-content-between p-2 rounded-2 text-dark cursor-pointer sidebar-brand-label @(isChecked ? "bg-light font-bold" : "")" style="font-size: 14px; cursor: pointer;">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <input type="radio" name="brand" value="@b" checked="@isChecked" onchange="this.form.submit()" class="form-check-input mt-0" style="accent-color: #0f172a;" />
+                                        <span>@b</span>
+                                    </span>
+                                    <span class="badge bg-slate-100 text-muted rounded-pill font-semibold" style="font-size: 11px;">110</span>
+                                </label>
+                            }
+                        }
+                    </div>
+                </div>
+
+                @* Categories List *@
+                <div class="filter-block mb-4 pb-3 border-bottom">
+                    <h4 class="h6 fw-extrabold text-dark mb-3 text-uppercase" style="letter-spacing: 0.5px;">Categories</h4>
+                    <ul class="filter-list list-unstyled p-0 m-0 d-flex flex-column gap-1">
+                        <li>
+                            <a asp-action="Index" class="@(string.IsNullOrEmpty(category) ? "active" : "")">
+                                <span>All Categories</span>
+                            </a>
+                        </li>
+                        @foreach (var cat in categoryTree)
+                        {
+                            bool isCatActive = currentCatId.HasValue && currentCatId.Value == cat.CategoryID;
+                            <li>
+                                <a asp-action="Index" asp-route-categoryId="@cat.CategoryID" asp-route-category="@cat.Name" class="@(isCatActive ? "active" : "")">
+                                    <span>@cat.Name</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                @if (!string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(search))
+                {
+                    <a asp-action="Index" class="btn btn-outline-dark w-100 rounded-3 fw-bold py-2 mt-2" style="font-size: 13px;">Reset Filters</a>
+                }
+            </form>
+        </div>
+
+        @* ===== RIGHT MAIN LISTING ===== *@
+        <div>
+            @* Top Toolbar *@
+            <div class="d-flex align-items-center justify-content-between p-3 bg-light border rounded-4 mb-4">
+                <div class="fw-semibold text-muted" style="font-size: 14px;">
+                    Selected Products: <span class="badge bg-dark text-white rounded-pill px-3 py-1.5 ms-1 fw-bold">@(totalProducts > 0 ? totalProducts : Model.Count())</span>
+                </div>
+
+                <form method="get" asp-action="Index" class="sort-form m-0 d-flex align-items-center gap-2">
+                    <input type="hidden" name="search" value="@search" />
+                    <input type="hidden" name="category" value="@category" />
+                    <input type="hidden" name="brand" value="@currentBrand" />
+                    <label class="small text-muted fw-bold text-uppercase me-1 d-none d-sm-inline" style="font-size: 11px;">Sort By:</label>
+                    <select name="sort" class="form-select form-select-sm rounded-3 fw-semibold text-dark shadow-sm" style="width: 170px;" onchange="this.form.submit()">
+                        <option value="" selected="@(string.IsNullOrEmpty(sort))">By rating</option>
+                        <option value="newest" selected="@(sort == "newest")">Newest</option>
+                        <option value="price_asc" selected="@(sort == "price_asc")">Price: Low to High</option>
+                        <option value="price_desc" selected="@(sort == "price_desc")">Price: High to Low</option>
+                    </select>
+                </form>
+            </div>
+
+            @* Product Grid *@
+            @if (Model.Any())
+            {
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+                    @foreach (var product in Model)
+                    {
+                        var cartItem = cartItems?.FirstOrDefault(c => c.ProductID == product.ProductID);
+                        <div class="col">
+                            <partial name="_ProductCard" model="product" view-data="@(new ViewDataDictionary(ViewData) { { "CartItem", cartItem } })" />
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state text-center py-5 my-4 bg-light border rounded-4">
+                    <i class="fas fa-search fs-1 text-muted mb-3 d-block"></i>
+                    <h5 class="fw-bold text-dark">No products found</h5>
+                    <p class="text-muted small mb-4">No items match your selected filter criteria.</p>
+                    <a asp-action="Index" class="btn btn-dark rounded-3 px-4 fw-bold">Clear Filters</a>
+                </div>
+            }
+
+            @* Pagination *@
+            @if (totalPages > 1)
+            {
+                <div class="d-flex justify-content-center mt-5">
+                    <ul class="pagination gap-2">
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link rounded-3 fw-bold px-3 py-2 text-dark border @(i == currentPage ? "bg-dark text-white border-dark" : "bg-white")" asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-search="@search"
+                                   asp-route-category="@category"
+                                   asp-route-brand="@currentBrand"
+                                   asp-route-sort="@sort">@i</a>
+                            </li>
+                        }
+                    </ul>
                 </div>
             }
         </div>
-        <!-- PAGINATION -->
-        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
-        {
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page="@(ViewBag.CurrentPage - 1)"
-                           asp-route-search="@Context.Request.Query["search"]"
-                           asp-route-category="@Context.Request.Query["category"]">
-                            Previous
-                        </a>
-                    </li>
-                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
-                    {
-                        <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
-                            <a class="page-link"
-                               asp-action="Index"
-                               asp-route-page="@i"
-                               asp-route-search="@Context.Request.Query["search"]"
-                               asp-route-category="@Context.Request.Query["category"]">
-                                @i
-                            </a>
-                        </li>
-                    }
-
-                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page="@(ViewBag.CurrentPage + 1)"
-                           asp-route-search="@Context.Request.Query["search"]"
-                           asp-route-category="@Context.Request.Query["category"]">
-                            Next
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        }
     </div>
 </div>
-
-<!-- JAVASCRIPT -->
-<script>
-
-    // auto seactch
-    let typingTimer;
-    function autoSubmit() {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(function () {
-            document.getElementById("filterForm").submit();
-        }, 500);
-    }
-    document.addEventListener("submit", async function (e) {
-        if (e.target.classList.contains("ajax-cart-form")) {
-            e.preventDefault();
-            const form = e.target;
-            const url = form.getAttribute("data-url");
-            const formData = new FormData(form);
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert("Something went wrong");
-                }
-
-            } catch (error) {
-                console.error("Error:", error);
-            }
-        }
-    });
-
-</script>

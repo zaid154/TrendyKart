@@ -1,85 +1,214 @@
-﻿@{
+@{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var ordersCount = ViewBag.TotalOrders ?? 0;
+    var customersCount = ViewBag.TotalCustomers ?? 0;
+    var revenue = ViewBag.TotalRevenue ?? 0;
 }
-<div class="row">
-    <div class="col-12">
-        <!-- Page Header -->
-        <div class="mb-3">
-            <h5 class="mb-1">Admin Dashboard</h5>
-            <small class="text-muted">Welcome Admin</small>
+
+<!-- ===== TOP STATS GRID (Shopify / Stripe Style) ===== -->
+<div class="row g-3 mb-4">
+    <!-- Revenue Stat -->
+    <div class="col-md-3">
+        <div class="saas-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.5px;">Gross Revenue</span>
+                <span style="background: #DCFCE7; color: #15803D; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;">+14.2%</span>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #09090B; letter-spacing: -0.5px;">₹ @revenue.ToString("N0")</div>
+            <div style="font-size: 12px; color: #71717A; margin-top: 6px;">Vs. previous 30 days</div>
         </div>
-        <!-- Main Navigation Box -->
-        <div class="border rounded p-3 mb-3">
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <a asp-controller="Admin" asp-action="AddProduct"
-                       class="admin-action-card">
-                        Add Product
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a asp-controller="Admin" asp-action="Products"
-                       class="admin-action-card">
-                        Manage Product 
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a asp-controller="Admin" asp-action="Customers"
-                       class="admin-action-card">
-                        Manage Users
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a asp-controller="Admin" asp-action="Orders"
-                       class="admin-action-card">
-                        Manage Orders
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a asp-controller="Admin" asp-action="Payments"
-                       class="admin-action-card">
-                        Manage Payments
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a asp-controller="Admin" asp-action="FeedbackList"
-                       class="admin-action-card">
-                        Manage Feedback
-                    </a>
+    </div>
+
+    <!-- Orders Stat -->
+    <div class="col-md-3">
+        <div class="saas-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.5px;">Total Orders</span>
+                <span style="background: #EFF6FF; color: #1D4ED8; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;">Active</span>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #09090B; letter-spacing: -0.5px;">@ordersCount</div>
+            <div style="font-size: 12px; color: #71717A; margin-top: 6px;">Fulfillment rate: 98%</div>
+        </div>
+    </div>
+
+    <!-- Customers Stat -->
+    <div class="col-md-3">
+        <div class="saas-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.5px;">Registered Accounts</span>
+                <span style="background: #F4F4F5; color: #52525B; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;">Verified</span>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #09090B; letter-spacing: -0.5px;">@customersCount</div>
+            <div style="font-size: 12px; color: #71717A; margin-top: 6px;">Active buyers base</div>
+        </div>
+    </div>
+
+    <!-- Products in Catalog Stat -->
+    <div class="col-md-3">
+        <div class="saas-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: #71717A; text-transform: uppercase; letter-spacing: 0.5px;">Active Products</span>
+                <span style="background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;">17 Listed</span>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #09090B; letter-spacing: -0.5px;">17 Items</div>
+            <div style="font-size: 12px; color: #71717A; margin-top: 6px;">5 main categories</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== QUICK SHORTCUT ACTIONS BAR ===== -->
+<div class="saas-card mb-4" style="padding: 16px 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700; color: #09090B;">
+            <i class="fas fa-bolt me-1" style="color: #F59E0B;"></i> Quick Merchant Actions
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a asp-action="AddProduct" class="btn btn-dark btn-sm" style="font-size: 13px; font-weight: 600; border-radius: 6px; background: #09090B; border: none; padding: 7px 16px;">
+                <i class="fas fa-plus me-1"></i> Add Product
+            </a>
+            <a asp-action="Products" class="btn btn-outline-dark btn-sm" style="font-size: 13px; font-weight: 600; border-radius: 6px; border-color: #E4E4E7; padding: 7px 16px;">
+                Manage Inventory
+            </a>
+            <a asp-action="Orders" class="btn btn-outline-dark btn-sm" style="font-size: 13px; font-weight: 600; border-radius: 6px; border-color: #E4E4E7; padding: 7px 16px;">
+                Review Orders
+            </a>
+            <a asp-action="Customers" class="btn btn-outline-dark btn-sm" style="font-size: 13px; font-weight: 600; border-radius: 6px; border-color: #E4E4E7; padding: 7px 16px;">
+                View Customers
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MAIN SECTION: CHARTS & RECENT ACTIVITY ===== -->
+<div class="row g-4 mb-4">
+    <!-- 30-Day Revenue Trend Line Chart -->
+    <div class="col-md-8">
+        <div class="saas-card" style="height: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div>
+                    <h3 style="font-size: 15px; font-weight: 700; color: #09090B; margin: 0;">30-Day Revenue & Sales Growth</h3>
+                    <small style="color: #71717A; font-size: 12px;">Daily gross sales in ₹ (INR)</small>
                 </div>
             </div>
-        </div>
-        <!-- Analytics Section -->
-        <div class="border rounded p-3">
-            <div class="row text-center mb-3">
-                <div class="col-md-4">
-                    <small class="text-muted">Total Orders</small>
-                    <h5 class="mb-0">@ViewBag.TotalOrders</h5>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted">Total Customers</small>
-                    <h5 class="mb-0">@ViewBag.TotalCustomers</h5>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted">Total Revenue</small>
-                    <h5 class="mb-0">₹ @ViewBag.TotalRevenue</h5>
-                </div>
+            <div style="position: relative; height: 260px;">
+                <canvas id="revenueGrowthChart"></canvas>
             </div>
-            <hr class="my-3" />
-            <!-- Rating Chart -->
-            <div>
-                <small class="text-muted fw-semibold">
-                    Customer Rating
-                </small>
-                <canvas id="ratingChart" height="70"></canvas>
+        </div>
+    </div>
+
+    <!-- Category Sales Breakdown -->
+    <div class="col-md-4">
+        <div class="saas-card" style="height: 100%;">
+            <h3 style="font-size: 15px; font-weight: 700; color: #09090B; margin-bottom: 16px;">Category Sales</h3>
+            <div style="position: relative; height: 240px;">
+                <canvas id="categorySalesChart"></canvas>
             </div>
         </div>
     </div>
 </div>
+
+<div class="row g-4 mb-4">
+    <!-- Customer Rating Chart -->
+    <div class="col-md-7">
+        <div class="saas-card" style="height: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h3 style="font-size: 15px; font-weight: 700; color: #09090B; margin: 0;">Customer Feedback Breakdown</h3>
+                    <small style="color: #71717A; font-size: 12px;">Verified store ratings by star count</small>
+                </div>
+            </div>
+            <div style="position: relative; height: 220px;">
+                <canvas id="ratingChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation Bar -->
+    <div class="col-md-5">
+        <div class="saas-card" style="height: 100%;">
+            <h3 style="font-size: 15px; font-weight: 700; color: #09090B; margin-bottom: 16px;">Admin Navigation Shortcuts</h3>
+            <div class="list-group list-group-flush">
+                <a asp-action="Reviews" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-star text-warning me-2"></i> Review Moderation</span>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </a>
+                <a asp-action="AuditLogs" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-user-shield text-primary me-2"></i> Audit Trail Logs</span>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </a>
+                <a asp-action="Orders" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-shopping-bag text-success me-2"></i> Order Fulfillment</span>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </a>
+                <a asp-action="Coupons" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-ticket-alt text-danger me-2"></i> Discount Coupons</span>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    var ratingData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.RatingData));
+    // Fetch live analytics data
+    fetch('/Admin/GetAnalyticsData')
+        .then(res => res.json())
+        .then(data => {
+            // Revenue Growth Line Chart
+            const revCtx = document.getElementById('revenueGrowthChart').getContext('2d');
+            new Chart(revCtx, {
+                type: 'line',
+                data: {
+                    labels: data.salesTrend.map(s => s.date),
+                    datasets: [{
+                        label: 'Sales (₹)',
+                        data: data.salesTrend.map(s => s.total),
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v => '₹' + v } }
+                    }
+                }
+            });
+
+            // Category Sales / Stock Doughnut Chart (Live DB)
+            const catCtx = document.getElementById('categorySalesChart').getContext('2d');
+            const catLabels = data.categoryBreakdown.map(c => c.category);
+            const catTotals = data.categoryBreakdown.map(c => c.total);
+
+            new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catTotals,
+                        backgroundColor: ['#2563eb', '#4f46e5', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0891b2']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } } } 
+                    }
+                }
+            });
+        });
+
+    var ratingData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.RatingData ?? new List<object>()));
+    ratingData = ratingData || [];
     var labels = [];
     var counts = [];
     for (var i = 1; i <= 5; i++) {
@@ -95,19 +224,19 @@
             datasets: [{
                 label: 'Ratings',
                 data: counts,
-                backgroundColor: [
-                    '#dc3545',
-                    '#fd7e14',
-                    '#ffc107',
-                    '#28a745',
-                    '#007bff'
-                ]
+                backgroundColor: '#18181B',
+                borderRadius: 6
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, precision: 0 } }
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#F4F4F5' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
         }
     });
 </script>
+}

@@ -1,77 +1,288 @@
-﻿@model IEnumerable<TrendyKart.Models.Cart>
+@model IEnumerable<TrendyKart.Models.Cart>
 @{
-    ViewData["Title"] = "Delivery Address";
-}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="border rounded p-4">
-            <h5 class="text-center mb-4">Delivery Address</h5>
-            <form asp-action="ConfirmCheckout" method="post">
+    ViewData["Title"] = "Checkout & Payment";
+    Layout = "_StoreLayout";
 
-                <!-- Full Address -->
-                <div class="mb-3">
-                    <label class="form-label">Full Address</label>
-                    <input type="text"
-                           name="ShippingAddress"
-                           value="@ViewBag.DefaultStreet"
-                           class="form-control"
-                           placeholder="House No, Street, Area"
-                           required />
-                </div>
-                <!-- City -->
-                <div class="mb-3">
-                    <label class="form-label">City</label>
-                    <input type="text"
-                           name="City"
-                           value="@ViewBag.DefaultCity"
-                           class="form-control"
-                           required />
-                </div>
-                <!-- State -->
-                <div class="mb-3">
-                    <label class="form-label">State</label>
-                    <input type="text"
-                           name="State"
-                           value="@ViewBag.DefaultState"
-                           class="form-control"
-                           required />
-                </div>
-                <!-- Pincode -->
-                <div class="mb-3">
-                    <label class="form-label">Pincode</label>
-                    <input type="text"
-                           name="Pincode"
-                           value="@ViewBag.DefaultPincode"
-                           class="form-control"
-                           pattern="[0-9]{6}"
-                           maxlength="6"
-                           required />
-                    <small class="text-muted">
-                        Enter valid 6 digit pincode
-                    </small>
-                </div>
-                <!-- Country -->
-                <div class="mb-4">
-                    <label class="form-label">Country</label>
-                    <input type="text"
-                           name="Country"
-                           value="India"
-                           class="form-control"
-                           readonly />
-                </div>
-                <!-- Buttons -->
-                <div class="d-flex justify-content-between">
-                    <a asp-controller="Cart"
-                       asp-action="Index"
-                       class="btn btn-outline-dark">
-                        Back to Cart
-                    </a>
-                    <button type="submit"
-                            class="btn btn-dark">
-                        Place Order
-                    </button>
-                </div>
-            </form>
+    decimal subTotal = ViewBag.SubTotal != null ? (decimal)ViewBag.SubTotal : 0;
+    decimal shippingCharge = ViewBag.ShippingCharge != null ? (decimal)ViewBag.ShippingCharge : 0;
+    decimal cartTotal = ViewBag.CartTotal != null ? (decimal)ViewBag.CartTotal : 0;
+}
+
+<div class="container section py-4">
+    
+    @* ===== 3-STEP CHECKOUT STEPPER (Matching Cart page - 2.png, 3.png, 4.png) ===== *@
+    <div style="display: flex; justify-content: space-around; align-items: center; max-width: 800px; margin: 0 auto 40px auto;">
+        <div id="stepHeader1" class="checkout-step-item active" style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fas fa-location-dot"></i></div>
+            <div>
+                <div style="font-size: 11px; color: #888;">Step 1</div>
+                <div style="font-size: 14px; font-weight: 700; color: #000;">Address</div>
+            </div>
+        </div>
+
+        <div id="stepHeader2" class="checkout-step-item" style="display: flex; align-items: center; gap: 12px; opacity: 0.4;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fas fa-truck"></i></div>
+            <div>
+                <div style="font-size: 11px; color: #888;">Step 2</div>
+                <div style="font-size: 14px; font-weight: 700; color: #000;">Shipping</div>
+            </div>
+        </div>
+
+        <div id="stepHeader3" class="checkout-step-item" style="display: flex; align-items: center; gap: 12px; opacity: 0.4;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fas fa-credit-card"></i></div>
+            <div>
+                <div style="font-size: 11px; color: #888;">Step 3</div>
+                <div style="font-size: 14px; font-weight: 700; color: #000;">Payment</div>
+            </div>
         </div>
     </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div style="background: #FEE2E2; border: 1px solid #FCA5A5; color: #B91C1C; padding: 14px; border-radius: 8px; margin-bottom: 24px;">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form id="checkoutForm" asp-action="ConfirmCheckout" method="post">
+        @Html.AntiForgeryToken()
+
+        @* ===== STEP 1: SELECT ADDRESS (Matching Cart page - 2.png) ===== *@
+        <div id="checkoutStep1">
+            <h3 style="font-size: 20px; font-weight: 700; color: #000; margin-bottom: 24px;">Select Address</h3>
+
+            <div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px; margin: 0 auto 30px auto;">
+                <div style="background: #F6F6F6; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <input type="radio" name="selectedAddr" checked style="width: 18px; height: 18px; accent-color: #000;" />
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <strong style="font-size: 15px; color: #000;">2118 Thornridge</strong>
+                                <span style="background: #000; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">HOME</span>
+                            </div>
+                            <div style="font-size: 13px; color: #555; margin-top: 4px;">2118 Thornridge Cir. Syracuse, Connecticut 35624</div>
+                            <div style="font-size: 13px; color: #555;">(209) 555-0104</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; font-size: 14px; color: #777;">
+                        <i class="fas fa-pen" style="cursor: pointer;"></i>
+                        <i class="fas fa-times" style="cursor: pointer;"></i>
+                    </div>
+                </div>
+
+                <div style="background: #F6F6F6; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <input type="radio" name="selectedAddr" style="width: 18px; height: 18px; accent-color: #000;" />
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <strong style="font-size: 15px; color: #000;">Headoffice</strong>
+                                <span style="background: #000; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">OFFICE</span>
+                            </div>
+                            <div style="font-size: 13px; color: #555; margin-top: 4px;">2715 Ash Dr. San Jose, South Dakota 83475</div>
+                            <div style="font-size: 13px; color: #555;">(704) 555-0127</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; font-size: 14px; color: #777;">
+                        <i class="fas fa-pen" style="cursor: pointer;"></i>
+                        <i class="fas fa-times" style="cursor: pointer;"></i>
+                    </div>
+                </div>
+            </div>
+
+            @* Hidden / Editable input fields *@
+            <div style="max-width: 800px; margin: 0 auto 30px auto; background: #fff; border: 1px solid #E5E5E5; border-radius: 12px; padding: 20px;">
+                <h5 style="font-size: 15px; font-weight: 600; margin-bottom: 16px;">Delivery Details</h5>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; color: #666;">Street Address</label>
+                    <input type="text" id="ShippingAddress" name="ShippingAddress" value="2118 Thornridge Cir." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;" required />
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; color: #666;">City</label>
+                        <input type="text" id="City" name="City" value="Syracuse" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;" required />
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #666;">State</label>
+                        <input type="text" id="State" name="State" value="Connecticut" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;" required />
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #666;">Pincode</label>
+                        <input type="text" id="Pincode" name="Pincode" value="356240" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;" required />
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 16px; max-width: 800px; margin: 0 auto;">
+                <a asp-controller="Cart" asp-action="Index" class="btn-outline" style="border-color: #000; color: #000; padding: 12px 36px; border-radius: 8px;">Back</a>
+                <button type="button" class="btn-dark" onclick="goToStep(2)" style="padding: 12px 48px; border-radius: 8px;">Next</button>
+            </div>
+        </div>
+
+        @* ===== STEP 2: SHIPMENT METHOD (Matching Cart page - 3.png) ===== *@
+        <div id="checkoutStep2" style="display: none;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #000; margin-bottom: 24px;">Shipment Method</h3>
+
+            <div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px; margin: 0 auto 30px auto;">
+                <div style="border: 1px solid #000; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <input type="radio" name="shipMethod" checked style="width: 18px; height: 18px; accent-color: #000;" />
+                        <div>
+                            <strong style="font-size: 15px; color: #000;">Free</strong>
+                            <span style="color: #666; font-size: 14px; margin-left: 12px;">Regulary shipment</span>
+                        </div>
+                    </div>
+                    <span style="font-size: 14px; font-weight: 600; color: #000;">17 Oct, 2023</span>
+                </div>
+
+                <div style="border: 1px solid #E0E0E0; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <input type="radio" name="shipMethod" style="width: 18px; height: 18px; accent-color: #000;" />
+                        <div>
+                            <strong style="font-size: 15px; color: #000;">₹50.00</strong>
+                            <span style="color: #666; font-size: 14px; margin-left: 12px;">Get your delivery as soon as possible</span>
+                        </div>
+                    </div>
+                    <span style="font-size: 14px; font-weight: 600; color: #000;">1 Oct, 2023</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 16px; max-width: 800px; margin: 0 auto;">
+                <button type="button" class="btn-outline" onclick="goToStep(1)" style="border-color: #000; color: #000; padding: 12px 36px; border-radius: 8px;">Back</button>
+                <button type="button" class="btn-dark" onclick="goToStep(3)" style="padding: 12px 48px; border-radius: 8px;">Next</button>
+            </div>
+        </div>
+
+        @* ===== STEP 3: PAYMENT (Matching Cart page - 4.png) ===== *@
+        <div id="checkoutStep3" style="display: none;">
+            <div style="display: grid; grid-template-columns: 340px 1fr; gap: 40px; align-items: start;">
+                
+                @* Summary Box on Left *@
+                <div style="border: 1px solid #E5E5E5; border-radius: 16px; padding: 24px; background: #fff;">
+                    <h4 style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 20px;">Summary</h4>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                        @foreach (var item in Model)
+                        {
+                            var itemPrice = item.Variant != null ? item.Variant.Price : (item.Product?.Price ?? 0);
+                            <div style="background: #F6F6F6; border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="@(item.Variant != null && item.Variant.MediaList != null && item.Variant.MediaList.Any() ? item.Variant.MediaList.First().MediaUrl : item.Product?.ImageUrl)" style="width: 40px; height: 40px; object-fit: contain;" />
+                                    <span style="font-size: 13px; font-weight: 500; color: #000; max-width: 140px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">@item.Product?.Name</span>
+                                </div>
+                                <span style="font-size: 14px; font-weight: 700; color: #000;">₹@(itemPrice * item.Quantity)</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div style="font-size: 13px; color: #777; margin-bottom: 4px;">Address</div>
+                    <div style="font-size: 14px; font-weight: 500; color: #000; margin-bottom: 16px;">2118 Thornridge Cir. Syracuse, Connecticut 35624</div>
+
+                    <div style="font-size: 13px; color: #777; margin-bottom: 4px;">Shipment method</div>
+                    <div style="font-size: 14px; font-weight: 500; color: #000; margin-bottom: 20px;">Free</div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;"><span style="color: #666;">Subtotal</span><span style="font-weight: 600;">₹@subTotal</span></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;"><span style="color: #666;">Estimated Tax</span><span style="font-weight: 600;">Included</span></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 16px;"><span style="color: #666;">Shipping</span><span style="font-weight: 600;">Free</span></div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; border-top: 1px solid #E5E5E5; padding-top: 16px;">
+                        <span>Total</span>
+                        <span>₹@cartTotal</span>
+                    </div>
+                </div>
+
+                @* Payment Details on Right *@
+                <div>
+                    <h3 style="font-size: 20px; font-weight: 700; color: #000; margin-bottom: 20px;">Payment</h3>
+
+                    <div style="display: flex; gap: 24px; border-bottom: 1px solid #E5E5E5; padding-bottom: 12px; margin-bottom: 24px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+                            <input type="radio" name="PaymentMethod" id="payRazorpay" value="Razorpay" checked style="accent-color: #000;" />
+                            Razorpay / Credit Card
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; color: #666; cursor: pointer;">
+                            <input type="radio" name="PaymentMethod" id="payCOD" value="Cash On Delivery" style="accent-color: #000;" />
+                            Cash On Delivery
+                        </label>
+                    </div>
+
+                    @* Virtual Card Display *@
+                    <div style="background: #000; color: #fff; border-radius: 16px; padding: 30px; margin-bottom: 24px; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                            <i class="fas fa-sim-card" style="font-size: 24px; color: #e5c158;"></i>
+                            <i class="fab fa-cc-mastercard" style="font-size: 32px; color: #ff5f00;"></i>
+                        </div>
+                        <div style="font-size: 20px; font-family: monospace; letter-spacing: 2px; margin-bottom: 24px;">
+                            4085 &nbsp; 9536 &nbsp; 8475 &nbsp; 9530
+                        </div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #aaa;">Cardholder</div>
+                        <div style="font-size: 14px; font-weight: 600; text-transform: uppercase;">MOHD ZAID</div>
+                    </div>
+
+                    <input type="hidden" id="appliedCouponCode" name="CouponCode" value="" />
+                    <input type="hidden" id="razorpayOrderId" name="RazorpayOrderId" value="" />
+                    <input type="hidden" id="razorpayPaymentId" name="RazorpayPaymentId" value="" />
+                    <input type="hidden" id="razorpaySignature" name="RazorpaySignature" value="" />
+
+                    <div style="display: flex; justify-content: flex-end; gap: 16px; max-width: 400px;">
+                        <button type="button" class="btn-outline" onclick="goToStep(2)" style="border-color: #000; color: #000; padding: 12px 36px; border-radius: 8px;">Back</button>
+                        <button type="button" class="btn-dark" onclick="handleOrderSubmission()" style="padding: 12px 48px; border-radius: 8px;">Pay</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </form>
 </div>
+
+@section Scripts {
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function goToStep(stepNum) {
+        document.getElementById('checkoutStep1').style.display = (stepNum === 1 ? 'block' : 'none');
+        document.getElementById('checkoutStep2').style.display = (stepNum === 2 ? 'block' : 'none');
+        document.getElementById('checkoutStep3').style.display = (stepNum === 3 ? 'block' : 'none');
+
+        document.getElementById('stepHeader1').style.opacity = (stepNum >= 1 ? '1' : '0.4');
+        document.getElementById('stepHeader2').style.opacity = (stepNum >= 2 ? '1' : '0.4');
+        document.getElementById('stepHeader3').style.opacity = (stepNum >= 3 ? '1' : '0.4');
+    }
+
+    async function handleOrderSubmission() {
+        const form = document.getElementById('checkoutForm');
+        const paymentMethod = document.querySelector('input[name="PaymentMethod"]:checked').value;
+
+        if (paymentMethod === 'Razorpay') {
+            const data = new FormData();
+            data.append('couponCode', '');
+
+            const res = await fetch('/Cart/CreateRazorpayOrder', { method: 'POST', body: data });
+            if (!res.ok) {
+                alert('Could not initialize payment. Please try again.');
+                return;
+            }
+            const orderData = await res.json();
+
+            const options = {
+                "key": "rzp_test_12345678901234",
+                "amount": orderData.amount,
+                "currency": orderData.currency,
+                "name": "TrendyKart",
+                "description": "Order #" + orderData.orderNumber,
+                "order_id": orderData.orderId,
+                "handler": function (response) {
+                    document.getElementById('razorpayOrderId').value = response.razorpay_order_id || orderData.orderId;
+                    document.getElementById('razorpayPaymentId').value = response.razorpay_payment_id || 'pay_test_' + Date.now();
+                    document.getElementById('razorpaySignature').value = response.razorpay_signature || 'test_signature';
+                    form.submit();
+                },
+                "theme": { "color": "#000000" }
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } else {
+            form.submit();
+        }
+    }
+</script>
+}

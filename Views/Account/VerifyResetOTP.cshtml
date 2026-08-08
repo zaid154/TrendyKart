@@ -1,30 +1,39 @@
-﻿@{
-    ViewData["Title"] = "Verify OTP";
+@{
+    ViewData["Title"] = "Verify Reset OTP";
+    Layout = "_StoreLayout";
 }
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="border rounded p-4">
-            <h5 class="text-center mb-4">Verify OTP</h5>
 
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger">
-                    @ViewBag.Error
+<div class="auth-wrapper py-5 d-flex align-items-center justify-content-center" style="min-height: 80vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5 bg-white text-center">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px;">
+                        <i class="fas fa-lock-open fs-3"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">Verify Password Reset</h4>
+                    <p class="text-muted small mb-4">Enter the 6-digit OTP code sent to your email to unlock your password reset.</p>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-3 small rounded-3 text-start" role="alert">
+                            <i class="fas fa-circle-exclamation me-2"></i>@ViewBag.Error
+                            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="VerifyResetOTP" method="post">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark small mb-2">Enter 6-Digit OTP</label>
+                            <input type="text" name="otp" class="form-control form-control-lg text-center fw-bold bg-light py-2.5" placeholder="••••••" maxlength="6" required style="font-size: 24px; letter-spacing: 10px;" autofocus />
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 py-2.5 fw-bold rounded-3 shadow-sm text-uppercase tracking-wider mb-3" style="font-size: 14px; background: #000;">
+                            Verify Code <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </form>
                 </div>
-            }
-            <form asp-action="VerifyResetOTP" method="post">
-                <div class="mb-3">
-                    <label class="form-label">Enter OTP</label>
-                    <input type="text"
-                           name="otp"
-                           class="form-control"
-                           required />
-                </div>
-                <button type="submit"
-                        class="btn btn-dark w-100">
-                    Verify OTP
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 </div>

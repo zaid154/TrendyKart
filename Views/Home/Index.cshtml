@@ -1,49 +1,490 @@
-﻿@{
+@model TrendyKart.Models.HomeViewModel
+@{
     ViewData["Title"] = "Home";
+    Layout = "_StoreLayout";
+
+    var tiles = Model.FeatureTiles;
+    var t0 = tiles.FirstOrDefault(t => t.Title.Contains("Playstation") || t.Title.Contains("PS5")) ?? tiles.ElementAtOrDefault(0);
+    var t1 = tiles.FirstOrDefault(t => t.Title.Contains("Macbook")) ?? tiles.ElementAtOrDefault(1);
+    var t2 = tiles.FirstOrDefault(t => t.Title.Contains("AirPods")) ?? tiles.ElementAtOrDefault(2);
+    var t3 = tiles.FirstOrDefault(t => t.Title.Contains("Vision")) ?? tiles.ElementAtOrDefault(3);
 }
-<!-- HERO -->
-<section class="py-4">
-    <div class="container text-center">
-        <h1 class="fw-bold mb-2">Welcome to TrendyKart</h1>
-        <p class="text-muted mb-3">
-            Shop quality products with secure checkout and smooth ordering.
-        </p>
-        <a asp-controller="Product"
-           asp-action="Index"
-           class="btn btn-primary px-4">
-            Shop Now
-        </a>
+
+<style>
+    /* Widescreen Section Container */
+    .figma-section {
+        max-width: 1440px;
+        margin: 0 auto 5rem auto;
+        padding-left: clamp(1.5rem, 5vw, 5rem);
+        padding-right: clamp(1.5rem, 5vw, 5rem);
+    }
+    .figma-section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 2rem;
+        letter-spacing: -0.5px;
+    }
+    .figma-bento-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 340px 300px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Top Left Tile: PS5 */
+    .figma-tile-ps5 {
+        grid-column: 1;
+        grid-row: 1;
+        background: #ffffff;
+        padding: 3.5rem 3rem;
+        display: flex;
+        align-items: center;
+        gap: 2.5rem;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    /* Right Tall Tile: Macbook Air */
+    .figma-tile-macbook {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        background: #ededed;
+        padding: 4rem 3rem 4rem 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    /* Bottom Left Container */
+    .figma-bento-bottom-split {
+        grid-column: 1;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    /* AirPods Tile */
+    .figma-tile-airpods {
+        background: #ededed;
+        padding: 2.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    /* Vision Pro Tile */
+    .figma-tile-vision {
+        background: #353535;
+        color: #ffffff;
+        padding: 2.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    /* Category Section */
+    .category-card-figma {
+        background: #f5f5f7;
+        border-radius: 16px;
+        padding: 2rem 1rem;
+        text-align: center;
+        text-decoration: none;
+        color: #0f172a;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        min-height: 140px;
+    }
+    .category-card-figma:hover {
+        background: #0f172a;
+        color: #ffffff;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+    }
+    .category-card-figma:hover i {
+        color: #ffffff !important;
+    }
+    
+    /* Tabs Header */
+    .figma-tab-nav {
+        display: flex;
+        gap: 2.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 2.5rem;
+    }
+    .figma-tab-btn {
+        background: none;
+        border: none;
+        padding: 10px 0;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .figma-tab-btn.active {
+        color: #0f172a;
+        border-bottom-color: #0f172a;
+        font-weight: 700;
+    }
+
+    /* Popular Tile Figma Cards */
+    .popular-card-figma {
+        background: #f4f4f4;
+        border-radius: 20px;
+        padding: 2.5rem 1.75rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 480px;
+        transition: all 0.25s ease;
+    }
+    .popular-card-figma.dark-theme {
+        background: #252525;
+        color: #ffffff;
+    }
+    .popular-card-figma:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+    }
+
+    /* Sale Banner Figma */
+    .sale-banner-figma {
+        background: #2e2e38;
+        color: #ffffff;
+        border-radius: 24px;
+        padding: 5rem 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    @@media (max-width: 992px) {
+        .figma-bento-grid {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto;
+        }
+        .figma-tile-macbook {
+            grid-column: 1;
+            grid-row: auto;
+            flex-direction: column;
+            padding: 3rem 2rem;
+        }
+        .figma-bento-bottom-split {
+            grid-column: 1;
+            grid-row: auto;
+            grid-template-columns: 1fr;
+        }
+        .sale-banner-figma {
+            flex-direction: column;
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+    }
+</style>
+
+@* HERO BANNER *@
+@if (Model.Hero != null)
+{
+    <section class="hero mb-5">
+        <div class="container hero-inner py-5">
+            <div class="hero-text">
+                <div class="hero-eyebrow text-uppercase fw-bold mb-2" style="letter-spacing: 1px; font-size: 13px;">@Model.Hero.Eyebrow</div>
+                <h1 class="hero-title fw-extrabold text-white mb-3" style="font-size: 3.5rem; line-height: 1.1;">@Html.Raw(Model.Hero.Title)</h1>
+                <p class="hero-sub text-white-50 fs-5 mb-4" style="max-width: 540px;">@Model.Hero.Subtitle</p>
+                @if (!string.IsNullOrEmpty(Model.Hero.ButtonText))
+                {
+                    <a class="btn btn-outline-light btn-lg rounded-3 fw-bold px-4 py-2.5" href="@Model.Hero.LinkUrl">@Model.Hero.ButtonText</a>
+                }
+            </div>
+            <div class="hero-img text-center">
+                @if (!string.IsNullOrEmpty(Model.Hero.ImageUrl))
+                {
+                    <img src="@Model.Hero.ImageUrl" alt="@Model.Hero.Title" style="max-height: 420px; object-fit: contain;" />
+                }
+                else
+                {
+                    <img src="/images/demo/iphone-hero.png" alt="iPhone 17 Pro Max" style="max-height: 420px; object-fit: contain;" />
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* ===== FIGMA BENTO GRID ===== *@
+<section class="figma-section">
+    <div class="figma-bento-grid">
+        
+        @* TOP LEFT: Playstation 5 *@
+        <div class="figma-tile-ps5">
+            <div style="flex: 0 0 42%;">
+                <img src="/images/demo/playstation-5.png" alt="Playstation 5" style="max-height: 260px; width: 100%; object-fit: contain;" />
+            </div>
+            <div style="flex: 1;">
+                <h2 class="fw-bold text-dark mb-2" style="font-size: 2.75rem; letter-spacing: -1px; line-height: 1.1;">Playstation 5</h2>
+                <p class="text-muted small mb-0 lh-relaxed" style="font-size: 14px; max-width: 320px; color: #656565;">
+                    Incredibly powerful CPUs, GPUs, and an SSD with integrated I/O will redefine your PlayStation experience.
+                </p>
+            </div>
+        </div>
+
+        @* RIGHT COLUMN: Macbook Air *@
+        <div class="figma-tile-macbook" style="overflow: hidden;">
+            <div style="max-width: 340px; z-index: 2;">
+                <h2 class="fw-light text-dark mb-0" style="font-size: 3.8rem; letter-spacing: -1px; line-height: 1.05;">
+                    Macbook
+                </h2>
+                <h2 class="fw-extrabold text-dark mb-3" style="font-size: 3.8rem; letter-spacing: -1px; line-height: 1.05;">
+                    Air
+                </h2>
+                <p class="small mb-4 lh-relaxed" style="font-size: 14px; color: #656565; max-width: 320px;">
+                    The new 15-inch MacBook Air makes room for more of what you love with a spacious Liquid Retina display.
+                </p>
+                <a href="/Product/Index?category=Computers" class="btn btn-outline-dark rounded-3 px-4 py-2.5 fw-bold" style="font-size: 14px; border-width: 1px;">Shop Now</a>
+            </div>
+            <div style="flex: 1; text-align: right; z-index: 1; overflow: hidden;">
+                <img src="/images/demo/macbook-air.png" alt="Macbook Air" style="max-height: 400px; max-width: 100%; object-fit: contain;" />
+            </div>
+        </div>
+
+        @* BOTTOM LEFT SPLIT *@
+        <div class="figma-bento-bottom-split">
+            <!-- AirPods Max -->
+            <div class="figma-tile-airpods">
+                <img src="/images/demo/airpods-max.png" alt="AirPods Max" style="width: 130px; height: 130px; object-fit: contain; flex-shrink: 0;" />
+                <div>
+                    <h3 class="fw-normal text-dark mb-0" style="font-size: 1.35rem; line-height: 1.2;">Apple</h3>
+                    <h3 class="fw-extrabold text-dark mb-2" style="font-size: 1.35rem; line-height: 1.2;">AirPods Max</h3>
+                    <p class="small mb-0" style="font-size: 13px; color: #656565;">Computational audio. Listen, it's powerful</p>
+                </div>
+            </div>
+
+            <!-- Vision Pro -->
+            <div class="figma-tile-vision">
+                <img src="/images/demo/vision-pro.png" alt="Vision Pro" style="width: 130px; height: 130px; object-fit: contain; flex-shrink: 0;" />
+                <div>
+                    <h3 class="fw-normal text-white mb-0" style="font-size: 1.35rem; line-height: 1.2;">Apple</h3>
+                    <h3 class="fw-extrabold text-white mb-2" style="font-size: 1.35rem; line-height: 1.2;">Vision Pro</h3>
+                    <p class="small mb-0" style="font-size: 13px; color: #9e9e9e;">An immersive way to experience entertainment</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 </section>
-<!-- FEATURES -->
-<section class="py-4">
-    <div class="container">
-        <div class="row text-center g-3">
 
-            <div class="col-md-4">
-                <div class="p-3 border rounded">
-                    <h6 class="fw-semibold">Quality Products</h6>
-                    <p class="text-muted small mb-0">
-                        Trusted products with proper pricing.
+@* ===== BROWSE BY CATEGORY ===== *@
+<section class="figma-section">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="figma-section-title m-0">Browse By Category</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;" onclick="scrollChips(-1)">
+                <i class="fas fa-chevron-left text-dark" style="font-size: 13px;"></i>
+            </button>
+            <button class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;" onclick="scrollChips(1)">
+                <i class="fas fa-chevron-right text-dark" style="font-size: 13px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-4" id="chips">
+        <div class="col">
+            <a class="category-card-figma" href="/Product/Index?category=Phones">
+                <i class="fa-solid fa-mobile-screen-button fs-3 text-dark"></i>
+                <span class="fw-bold small">Phones</span>
+            </a>
+        </div>
+        <div class="col">
+            <a class="category-card-figma" href="/Product/Index?category=Smart%20Watches">
+                <i class="fa-solid fa-clock fs-3 text-dark"></i>
+                <span class="fw-bold small">Smart Watches</span>
+            </a>
+        </div>
+        <div class="col">
+            <a class="category-card-figma" href="/Product/Index?category=Cameras">
+                <i class="fa-solid fa-camera fs-3 text-dark"></i>
+                <span class="fw-bold small">Cameras</span>
+            </a>
+        </div>
+        <div class="col">
+            <a class="category-card-figma" href="/Product/Index?category=Headphones">
+                <i class="fa-solid fa-headphones fs-3 text-dark"></i>
+                <span class="fw-bold small">Headphones</span>
+            </a>
+        </div>
+        <div class="col">
+            <a class="category-card-figma" href="/Product/Index?category=Computers">
+                <i class="fa-solid fa-desktop fs-3 text-dark"></i>
+                <span class="fw-bold small">Computers</span>
+            </a>
+        </div>
+        <div class="col">
+            <a class="category-card-figma" href="/Product/Index?category=Gaming">
+                <i class="fa-solid fa-gamepad fs-3 text-dark"></i>
+                <span class="fw-bold small">Gaming</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+@* ===== PRODUCT TABS: New Arrival / Bestseller / Featured ===== *@
+<section class="figma-section">
+    <div class="figma-tab-nav">
+        <button class="figma-tab-btn active" onclick="showTab(event,'tab-new')">New Arrival</button>
+        <button class="figma-tab-btn" onclick="showTab(event,'tab-best')">Bestseller</button>
+        <button class="figma-tab-btn" onclick="showTab(event,'tab-feat')">Featured Products</button>
+    </div>
+
+    <div id="tab-new" class="tab-panel active">
+        @await Html.PartialAsync("_ProductGrid", Model.NewArrivals)
+    </div>
+    <div id="tab-best" class="tab-panel d-none">
+        @await Html.PartialAsync("_ProductGrid", Model.Bestsellers)
+    </div>
+    <div id="tab-feat" class="tab-panel d-none">
+        @await Html.PartialAsync("_ProductGrid", Model.Featured)
+    </div>
+</section>
+
+@* ===== FIGMA POPULAR PRODUCTS 4-TILE GRID ===== *@
+<section class="figma-section">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        <!-- Tile 1: Popular Products -->
+        <div class="col">
+            <div class="popular-card-figma">
+                <div class="mb-3" style="height: 180px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/images/demo/airpods-max.png" alt="Popular Products" style="max-height: 170px; object-fit: contain;" />
+                </div>
+                <div>
+                    <h3 class="fw-extrabold text-dark fs-4 mb-2">Popular Products</h3>
+                    <p class="text-muted small mb-4 lh-relaxed" style="font-size: 13px;">
+                        iPad combines a magnificent 10.2-inch Retina display, incredible performance, multitasking and ease of use.
                     </p>
+                    <a href="/Product/Index" class="btn btn-outline-dark rounded-3 px-4 py-2.5 fw-bold" style="font-size: 14px;">Shop Now</a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="p-3 border rounded">
-                    <h6 class="fw-semibold">Secure System</h6>
-                    <p class="text-muted small mb-0">
-                        Safe login and protected transactions.
+        </div>
+
+        <!-- Tile 2: Ipad Pro -->
+        <div class="col">
+            <div class="popular-card-figma">
+                <div class="mb-3" style="height: 180px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/images/demo/ipad-pro.png" alt="Ipad Pro" style="max-height: 170px; object-fit: contain;" />
+                </div>
+                <div>
+                    <h3 class="fw-extrabold text-dark fs-4 mb-2">Ipad Pro</h3>
+                    <p class="text-muted small mb-4 lh-relaxed" style="font-size: 13px;">
+                        iPad combines a magnificent 10.2-inch Retina display, incredible performance, multitasking and ease of use.
                     </p>
+                    <a href="/Product/Index?category=Computers" class="btn btn-outline-dark rounded-3 px-4 py-2.5 fw-bold" style="font-size: 14px;">Shop Now</a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="p-3 border rounded">
-                    <h6 class="fw-semibold">Easy Ordering</h6>
-                    <p class="text-muted small mb-0">
-                        Add to cart and order in seconds.
+        </div>
+
+        <!-- Tile 3: Samsung Galaxy -->
+        <div class="col">
+            <div class="popular-card-figma">
+                <div class="mb-3" style="height: 180px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/images/demo/samsung-galaxy.png" alt="Samsung Galaxy" style="max-height: 170px; object-fit: contain;" />
+                </div>
+                <div>
+                    <h3 class="fw-extrabold text-dark fs-4 mb-2">Samsung Galaxy</h3>
+                    <p class="text-muted small mb-4 lh-relaxed" style="font-size: 13px;">
+                        iPad combines a magnificent 10.2-inch Retina display, incredible performance, multitasking and ease of use.
                     </p>
+                    <a href="/Product/Index?category=Phones" class="btn btn-outline-dark rounded-3 px-4 py-2.5 fw-bold" style="font-size: 14px;">Shop Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tile 4: Macbook Pro (Dark) -->
+        <div class="col">
+            <div class="popular-card-figma dark-theme">
+                <div class="mb-3" style="height: 180px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/images/demo/macbook-air.png" alt="Macbook Pro" style="max-height: 170px; object-fit: contain;" />
+                </div>
+                <div>
+                    <h3 class="fw-extrabold text-white fs-4 mb-2">Macbook Pro</h3>
+                    <p class="text-white-50 small mb-4 lh-relaxed" style="font-size: 13px;">
+                        iPad combines a magnificent 10.2-inch Retina display, incredible performance, multitasking and ease of use.
+                    </p>
+                    <a href="/Product/Index?category=Computers" class="btn btn-outline-light rounded-3 px-4 py-2.5 fw-bold" style="font-size: 14px;">Shop Now</a>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+@* ===== DISCOUNTS UP TO 50% ===== *@
+@if (Model.Discounted.Any())
+{
+    <section class="figma-section">
+        <h2 class="figma-section-title">Discounts up to -50%</h2>
+        @await Html.PartialAsync("_ProductGrid", Model.Discounted)
+    </section>
+}
+
+@* ===== FIGMA BIG SUMMER SALE BANNER ===== *@
+<section class="figma-section">
+    <div class="sale-banner-figma">
+        <div class="d-none d-md-block" style="flex: 0 0 30%;">
+            <img src="/images/demo/iphone-hero.png" alt="Summer Sale" style="max-height: 320px; object-fit: contain;" />
+        </div>
+        <div class="text-center px-4" style="flex: 1;">
+            <h2 class="fw-light text-white mb-2" style="font-size: 3.5rem; letter-spacing: -1px;">
+                Big Summer <strong class="fw-extrabold text-white">Sale</strong>
+            </h2>
+            <p class="text-white-50 mb-4 mx-auto" style="max-width: 500px; font-size: 15px;">
+                Commodo fames vitae vitae leo mauris in. Eu consequat.
+            </p>
+            <a href="/Product/Index" class="btn btn-outline-light rounded-3 px-5 py-3 fw-bold" style="font-size: 15px;">Shop Now</a>
+        </div>
+        <div class="d-none d-md-block" style="flex: 0 0 30%; text-align: right;">
+            <img src="/images/demo/airpods-max.png" alt="Summer Sale" style="max-height: 280px; object-fit: contain;" />
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    function showTab(evt, tabId) {
+        document.querySelectorAll('.figma-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+            panel.classList.add('d-none');
+        });
+
+        evt.currentTarget.classList.add('active');
+        const target = document.getElementById(tabId);
+        if (target) {
+            target.classList.remove('d-none');
+            target.classList.add('active');
+        }
+    }
+
+    function scrollChips(dir) {
+        const container = document.getElementById('chips');
+        if (container) {
+            container.scrollBy({ left: dir * 300, behavior: 'smooth' });
+        }
+    }
+</script>
+}

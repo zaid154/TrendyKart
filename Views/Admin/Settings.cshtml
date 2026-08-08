@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Store & Shipping Settings";
+    Layout = "_AdminLayout";
+    var shipping = ViewBag.ShippingSetting as TrendyKart.Models.ShippingSetting ?? new TrendyKart.Models.ShippingSetting();
+    var site = ViewBag.SiteSetting as TrendyKart.Models.SiteSetting ?? new TrendyKart.Models.SiteSetting();
+}
+
+<div class="container py-4">
+    <h3 class="fw-bold text-dark mb-4">Store Settings & Shipping Configuration</h3>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        @* Shipping Settings *@
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-shipping-fast text-primary me-2"></i>Shipping Rules</h5>
+                <form method="post" asp-action="UpdateShippingSettings">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Free Shipping Order Threshold (₹)</label>
+                        <input type="number" step="0.01" name="FreeShippingThreshold" value="@shipping.FreeShippingThreshold" class="form-control" required />
+                        <small class="text-muted">Orders at or above this amount get Free Delivery.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Flat Shipping Rate (₹)</label>
+                        <input type="number" step="0.01" name="FlatShippingRate" value="@shipping.FlatShippingRate" class="form-control" required />
+                        <small class="text-muted">Charge applied to orders below the free shipping threshold.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Shipping Notice Text</label>
+                        <input type="text" name="ShippingInfoText" value="@shipping.ShippingInfoText" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Save Shipping Rules</button>
+                </form>
+            </div>
+        </div>
+
+        @* Site & Authorized Signature Settings for Invoice PDF *@
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-invoice text-primary me-2"></i>Invoice & Signature Stamp</h5>
+                <form method="post" asp-action="UpdateSiteSettings" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Store Name</label>
+                        <input type="text" name="StoreName" value="@site.StoreName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Contact Email</label>
+                        <input type="email" name="ContactEmail" value="@site.ContactEmail" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Contact Phone</label>
+                        <input type="text" name="ContactPhone" value="@site.ContactPhone" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Business Address</label>
+                        <textarea name="Address" class="form-control" rows="2">@site.Address</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Authorized Signature Stamp Image (For Invoices)</label>
+                        @if (!string.IsNullOrEmpty(site.AuthorizedSignatureUrl))
+                        {
+                            <div class="mb-2 p-2 border rounded bg-light text-center">
+                                <img src="@site.AuthorizedSignatureUrl" style="max-height: 80px;" alt="Signature Stamp" />
+                            </div>
+                        }
+                        <input type="file" name="signatureFile" class="form-control" accept="image/*" />
+                        <small class="text-muted">Upload signature image stamp (PNG/JPG) to appear on all generated PDF invoices.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Save Invoice Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

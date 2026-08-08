@@ -1,65 +1,391 @@
-﻿@model TrendyKart.Models.Product
+@model TrendyKart.Models.Product
 @{
     ViewData["Title"] = "Add Product";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-<div class="row">
-    <div class="col-12">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Add Product</h4>
 
-            <a asp-action="Dashboard" class="btn btn-sm btn-outline-dark">
-                Back
-            </a>
+<style>
+    .upload-drop-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .upload-drop-zone:hover, .upload-drop-zone.dragover {
+        border-color: #0f172a;
+        background: #f1f5f9;
+    }
+
+    .preview-container {
+        display: none;
+        margin-top: 16px;
+        padding: 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .preview-thumb {
+        width: 90px;
+        height: 90px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.4px;">Add New Product</h2>
+            <div style="font-size: 13px; color: #64748b; margin-top: 2px;">Enter details to list a new item on TrendyKart storefront</div>
         </div>
-        <!-- Page Content Box -->
-        <div class="border rounded p-4">
-            <form asp-action="AddProduct" method="post" enctype="multipart/form-data">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label"></label>
-                    <input asp-for="Name" class="form-control" />
+        <a asp-action="Products" class="btn btn-outline-dark btn-sm" style="border-radius: 8px; font-weight: 600; padding: 8px 16px;">
+            <i class="fas fa-arrow-left me-1"></i> Back to Catalog
+        </a>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        
+        <form asp-action="AddProduct" method="post" enctype="multipart/form-data" id="addProductForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label asp-for="Name" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Product Name</label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g. Apple iPhone 17 Pro Max" required style="padding: 11px; border-radius: 8px;" />
                     <span asp-validation-for="Name" class="text-danger small"></span>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="Description" class="form-label"></label>
-                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Description" class="text-danger small"></span>
+
+                <div class="col-md-4">
+                    <label asp-for="Brand" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Brand</label>
+                    <input asp-for="Brand" class="form-control" placeholder="e.g. Apple, Samsung, Sony" style="padding: 11px; border-radius: 8px;" />
                 </div>
-                <div class="mb-3">
-                    <label asp-for="Category" class="form-label"></label>
-                    <input asp-for="Category" class="form-control" />
-                    <span asp-validation-for="Category" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label asp-for="Description" class="form-label mb-0" style="font-weight: 600; font-size: 13px; color: #334155;">Product Description</label>
+                    <button type="button" class="btn btn-sm" onclick="generateAiDescription()" style="font-size: 12px; font-weight: 700; border-radius: 6px; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
+                        <i class="fas fa-wand-magic-sparkles me-1"></i> Generate with AI
+                    </button>
                 </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Price" class="form-label"></label>
-                        <input asp-for="Price" type="number" step="0.01" class="form-control" />
-                        <span asp-validation-for="Price" class="text-danger small"></span>
+                <textarea asp-for="Description" id="txtDescription" class="form-control" rows="4" placeholder="Detailed product specifications and highlights..." style="padding: 11px; border-radius: 8px;"></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label asp-for="Category" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Category</label>
+                    <select asp-for="Category" class="form-select" style="padding: 11px; border-radius: 8px;">
+                        <option value="Phones">Phones</option>
+                        <option value="Smart Watches">Smart Watches</option>
+                        <option value="Headphones">Headphones</option>
+                        <option value="Computers">Computers</option>
+                        <option value="Gaming">Gaming</option>
+                        <option value="Cameras">Cameras</option>
+                        <option value="Accessories">Accessories</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Price" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Sale Price (₹)</label>
+                    <input asp-for="Price" type="number" step="0.01" class="form-control" placeholder="144900" required style="padding: 11px; border-radius: 8px;" />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="OldPrice" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Regular/Old Price (₹)</label>
+                    <input asp-for="OldPrice" type="number" step="0.01" class="form-control" placeholder="154900" style="padding: 11px; border-radius: 8px;" />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label asp-for="Stock" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Stock Quantity</label>
+                    <input asp-for="Stock" type="number" class="form-control" placeholder="50" required style="padding: 11px; border-radius: 8px;" />
+                    <span asp-validation-for="Stock" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-8 d-flex align-items-center gap-4 pt-4">
+                    <div class="form-check">
+                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox" id="chkFeatured" style="width: 18px; height: 18px; accent-color: #000;" />
+                        <label class="form-check-label" for="chkFeatured" style="font-weight: 600; font-size: 14px; color: #0F172A;">Featured Product</label>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Stock" class="form-label"></label>
-                        <input asp-for="Stock" type="number" class="form-control" />
-                        <span asp-validation-for="Stock" class="text-danger small"></span>
+
+                    <div class="form-check">
+                        <input asp-for="IsBestseller" class="form-check-input" type="checkbox" id="chkBestseller" style="width: 18px; height: 18px; accent-color: #000;" />
+                        <label class="form-check-label" for="chkBestseller" style="font-weight: 600; font-size: 14px; color: #0F172A;">Bestseller Tag</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="FreeShipping" class="form-check-input" type="checkbox" id="chkFreeShipping" checked style="width: 18px; height: 18px; accent-color: #000;" />
+                        <label class="form-check-label" for="chkFreeShipping" style="font-weight: 600; font-size: 14px; color: #0F172A;">Free Shipping</label>
                     </div>
                 </div>
-                <hr class="my-4" />
-                <div class="mb-3">
-                    <label asp-for="ImageFile" class="form-label">
-                        Upload Product Image
-                    </label>
-                    <input asp-for="ImageFile" type="file" class="form-control" required />
+            </div>
+
+            <hr style="border-color: #E2E8F0; margin: 24px 0;" />
+
+            <!-- DYNAMIC PRODUCT VARIANT MATRIX SECTION -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-layer-group" style="color: #6366f1;"></i> Product Variations (Storage, Color, RAM Matrix)
+                        </h4>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                            Enable variations if this item comes in different storage sizes, colors, or RAM specs.
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="chkHasVariants" onchange="toggleVariantsSection()" style="width: 42px; height: 22px; cursor: pointer;">
+                        <label class="form-check-label" for="chkHasVariants" style="font-weight: 700; font-size: 13px; cursor: pointer; margin-left: 8px;">Has Variations</label>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-dark">
-                    Add Product
+
+                <!-- QUICK PRESET GENERATOR BUTTONS -->
+                <div id="variantsContainer" style="display: none;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 12px; font-weight: 700; color: #475569;"><i class="fas fa-bolt text-warning me-1"></i> Quick Presets:</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addPresetVariant('128GB', '8GB RAM', 'Black', '#1C1B1B')" style="border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            + 128GB / 8GB Black
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addPresetVariant('256GB', '12GB RAM', 'White', '#F0F0F0')" style="border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            + 256GB / 12GB White
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addPresetVariant('512GB', '16GB RAM', 'Natural Titanium', '#B8B5AD')" style="border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            + 512GB / 16GB Titanium
+                        </button>
+                        <button type="button" class="btn btn-sm btn-dark ms-auto" onclick="addEmptyVariantRow()" style="border-radius: 6px; font-size: 12px; font-weight: 600; background: #0f172a;">
+                            <i class="fas fa-plus me-1"></i> Add Custom Row
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm align-middle" id="variantsTable" style="background: #ffffff; border-radius: 8px; overflow: hidden; font-size: 13px;">
+                            <thead style="background: #f1f5f9; color: #334155; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th style="width: 240px;">Variant Title</th>
+                                    <th style="width: 140px;">SKU</th>
+                                    <th style="width: 90px;">Storage</th>
+                                    <th style="width: 80px;">RAM</th>
+                                    <th style="width: 120px;">Color</th>
+                                    <th style="width: 110px;">Price (₹)</th>
+                                    <th style="width: 90px;">Stock</th>
+                                    <th style="width: 60px; text-align: center;">Default</th>
+                                    <th style="width: 50px; text-align: center;">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variantsTbody">
+                                <!-- Variant rows inserted dynamically via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DYNAMIC UPLOAD CONTAINER WITH LIVE THUMBNAIL PREVIEW -->
+            <div class="mb-4">
+                <label class="form-label" style="font-weight: 600; font-size: 13px; color: #334155;">Upload Product Main Picture</label>
+                
+                <div class="upload-drop-zone" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-arrow-up mb-2" style="font-size: 32px; color: #64748b;"></i>
+                    <div style="font-weight: 700; font-size: 14px; color: #0f172a;">Click to browse or drag & drop picture here</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">PNG, JPG, WEBP formats supported</div>
+                    <input asp-for="ImageFile" type="file" id="fileInput" required style="display: none;" onchange="handleFileSelect(event)" />
+                </div>
+
+                <!-- LIVE PREVIEW CARD -->
+                <div id="previewCard" class="preview-container">
+                    <img id="previewImage" src="" alt="Selected Preview" class="preview-thumb" />
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="badge bg-success" style="font-size: 10px; font-weight: 700;">READY TO UPLOAD</span>
+                            <span id="fileTypeBadge" class="badge bg-secondary" style="font-size: 10px; font-weight: 700;">PNG</span>
+                        </div>
+                        <div id="fileNameDisplay" style="font-weight: 700; font-size: 14px; color: #0f172a; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            file_name.png
+                        </div>
+                        <div id="fileSizeDisplay" style="font-size: 12px; color: #64748b;">0 KB</div>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearFileSelection(event)" style="font-size: 12px; font-weight: 600; padding: 6px 12px;">
+                        <i class="fas fa-trash me-1"></i> Remove
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px;">
+                <a asp-action="Products" class="btn btn-light" style="padding: 12px 24px; font-weight: 600; border-radius: 8px;">Cancel</a>
+                <button type="submit" class="btn btn-dark" style="padding: 12px 32px; font-weight: 600; border-radius: 8px; background: #0f172a;">
+                    <i class="fas fa-check me-2"></i> Save Product
                 </button>
-            </form>
-        </div>
+            </div>
+
+        </form>
+
     </div>
+
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        let variantIndex = 0;
+
+        function toggleVariantsSection() {
+            const chk = document.getElementById('chkHasVariants');
+            const container = document.getElementById('variantsContainer');
+            if (chk.checked) {
+                container.style.display = 'block';
+                if (document.querySelectorAll('#variantsTbody tr').length === 0) {
+                    // Populate default starter variant
+                    const basePrice = document.querySelector('input[name="Price"]').value || '144900';
+                    const baseStock = document.querySelector('input[name="Stock"]').value || '50';
+                    addPresetVariant('256GB', '12GB RAM', 'Titanium Black', '#1C1B1B', basePrice, baseStock);
+                }
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function addPresetVariant(storage, ram, colorName, colorHex, customPrice, customStock) {
+            const chk = document.getElementById('chkHasVariants');
+            if (!chk.checked) {
+                chk.checked = true;
+                toggleVariantsSection();
+            }
+
+            const basePrice = customPrice || document.querySelector('input[name="Price"]').value || '144900';
+            const baseStock = customStock || document.querySelector('input[name="Stock"]').value || '50';
+            const baseName = document.querySelector('input[name="Name"]').value || 'Product';
+            
+            const variantTitle = `${storage} / ${ram} - ${colorName}`;
+            const skuVal = `SKU-${storage}-${colorName.substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+            const tbody = document.getElementById('variantsTbody');
+            const isFirst = tbody.children.length === 0;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <input type="text" name="Variants[${variantIndex}].VariantName" value="${variantTitle}" class="form-control form-control-sm" required style="font-weight: 600;" />
+                </td>
+                <td>
+                    <input type="text" name="Variants[${variantIndex}].SKU" value="${skuVal}" class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <input type="text" name="Variants[${variantIndex}].Storage" value="${storage}" class="form-control form-control-sm" placeholder="256GB" />
+                </td>
+                <td>
+                    <input type="text" name="Variants[${variantIndex}].RAM" value="${ram}" class="form-control form-control-sm" placeholder="12GB" />
+                </td>
+                <td>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="color" name="Variants[${variantIndex}].ColorHex" value="${colorHex}" class="form-control form-control-color form-control-sm" style="width: 30px; height: 28px; padding: 2px;" />
+                        <input type="text" name="Variants[${variantIndex}].ColorName" value="${colorName}" class="form-control form-control-sm" placeholder="Black" />
+                    </div>
+                </td>
+                <td>
+                    <input type="number" step="0.01" name="Variants[${variantIndex}].Price" value="${basePrice}" class="form-control form-control-sm" required />
+                </td>
+                <td>
+                    <input type="number" name="Variants[${variantIndex}].Stock" value="${baseStock}" class="form-control form-control-sm" required />
+                </td>
+                <td class="text-center align-middle">
+                    <input type="radio" name="defaultVariantRadio" ${isFirst ? 'checked' : ''} onchange="updateDefaultFlags(this, ${variantIndex})" style="width: 16px; height: 16px; cursor: pointer;" />
+                    <input type="hidden" name="Variants[${variantIndex}].IsDefault" value="${isFirst ? 'true' : 'false'}" class="is-default-hidden" />
+                </td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-outline-danger btn-sm p-1" onclick="removeVariantRow(this)" style="line-height: 1; border: none;">
+                        <i class="fas fa-trash-can" style="font-size: 14px;"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            variantIndex++;
+        }
+
+        function addEmptyVariantRow() {
+            addPresetVariant('', '', '', '#000000', '', '');
+        }
+
+        function removeVariantRow(btn) {
+            const tr = btn.closest('tr');
+            tr.remove();
+        }
+
+        function updateDefaultFlags(radio, index) {
+            document.querySelectorAll('.is-default-hidden').forEach(el => el.value = 'false');
+            radio.closest('tr').querySelector('.is-default-hidden').value = 'true';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('fileNameDisplay').textContent = file.name;
+                    document.getElementById('fileSizeDisplay').textContent = (file.size / 1024).toFixed(1) + ' KB';
+                    
+                    const ext = file.name.split('.').pop().toUpperCase();
+                    document.getElementById('fileTypeBadge').textContent = ext;
+
+                    document.getElementById('previewCard').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearFileSelection(event) {
+            event.stopPropagation();
+            const fileInput = document.getElementById('fileInput');
+            fileInput.value = '';
+            document.getElementById('previewCard').style.display = 'none';
+        }
+
+        async function generateAiDescription() {
+            const name = document.querySelector('input[name="Name"]').value;
+            const brand = document.querySelector('input[name="Brand"]').value;
+            const category = document.querySelector('select[name="Category"]').value;
+
+            if (!name) {
+                alert('Please enter a Product Name first.');
+                return;
+            }
+
+            const btn = event.currentTarget;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Generating...';
+
+            try {
+                const res = await fetch('/Admin/GenerateAIDescription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productName: name, brand: brand, category: category })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('txtDescription').value = data.description;
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Error generating AI description.');
+            } finally {
+                btn.innerHTML = origHtml;
+            }
+        }
+    </script>
 }

@@ -1,0 +1,91 @@
+@model IEnumerable<TrendyKart.Models.ProductReview>
+@{
+    ViewData["Title"] = "Product Reviews Moderation";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-star text-warning me-2"></i> Product Reviews Moderation</h2>
+        <span class="badge bg-primary fs-6">@Model.Count() Total Reviews</span>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Customer</th>
+                            <th>Rating</th>
+                            <th>Headline & Comment</th>
+                            <th>Status</th>
+                            <th>Submitted At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">No product reviews submitted yet.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var r in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@(r.Product?.Name ?? "Deleted Product")</strong>
+                                    </td>
+                                    <td>@(r.Customer?.FullName ?? r.Customer?.Email ?? "Anonymous")</td>
+                                    <td>
+                                        <div class="text-warning">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= r.Rating ? "fas" : "far") fa-star"></i>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>@r.Headline</strong>
+                                        <p class="small text-muted mb-0">@r.Comment</p>
+                                    </td>
+                                    <td>
+                                        @if (r.IsApproved)
+                                        {
+                                            <span class="badge bg-success">Published</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                    </td>
+                                    <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            @if (!r.IsApproved)
+                                            {
+                                                <form asp-action="ApproveReview" asp-route-id="@r.ReviewID" method="post">
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Approve & Publish">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            <form asp-action="DeleteReview" asp-route-id="@r.ReviewID" method="post">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Review" onclick="return confirm('Delete this review?');">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

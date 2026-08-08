@@ -1,0 +1,75 @@
+@model TrendyKart.Models.Product
+@{
+    var cartItem = ViewData["CartItem"] as TrendyKart.Models.Cart;
+}
+
+<div class="product-card h-100 border-0 rounded-4 p-4 d-flex flex-column justify-content-between position-relative transition-all" style="background: #f6f6f6; border-radius: 16px; transition: all 0.25s ease;">
+    <!-- Wishlist Icon -->
+    <span class="wish position-absolute top-0 end-0 m-3 z-3 bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; cursor: pointer; border: 1px solid #e2e8f0;" onclick="toggleWishlistCard(@Model.ProductID, this)">
+        <i class="far fa-heart text-secondary" style="font-size: 14px;"></i>
+    </span>
+
+    @* Image preview with link *@
+    <a class="card-img d-flex align-items-center justify-content-center rounded-3 p-3 mb-3 text-decoration-none" asp-controller="Product" asp-action="Details" asp-route-id="@Model.ProductID" style="background: transparent; height: 200px; overflow: hidden;">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="@Model.Name" style="max-height: 170px; max-width: 100%; object-fit: contain; transition: transform 0.3s ease;" class="product-card-img" />
+        }
+        else
+        {
+            <div class="img-placeholder text-muted small fw-semibold" style="width:100%; text-align: center;">No Image</div>
+        }
+    </a>
+
+    <div class="d-flex flex-column flex-grow-1 justify-content-between text-center">
+        <div>
+            <!-- Product Title -->
+            <a asp-controller="Product" asp-action="Details" asp-route-id="@Model.ProductID" class="text-decoration-none">
+                <h5 class="p-name fw-bold text-dark mb-2" style="font-size: 15px; line-height: 1.35; height: 42px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    @Model.Name
+                </h5>
+            </a>
+        </div>
+
+        <div>
+            <!-- Price Block -->
+            <div class="p-price d-flex align-items-center justify-content-center gap-2 mb-3">
+                <span class="fs-4 fw-extrabold text-dark">₹@Model.Price.ToString("N0")</span>
+                @if (Model.OldPrice != null && Model.OldPrice.Value > Model.Price)
+                {
+                    <span class="p-old text-muted text-decoration-line-through small">₹@Model.OldPrice.Value.ToString("N0")</span>
+                }
+            </div>
+
+            @* ---- Action area ---- *@
+            @if (Model.Stock <= 0)
+            {
+                <button class="btn btn-secondary w-100 rounded-3 fw-bold py-2.5 disabled" disabled style="font-size: 14px;">Out of Stock</button>
+            }
+            else if (cartItem != null)
+            {
+                <div class="qty-row d-flex align-items-center justify-content-between border rounded-3 p-1 bg-white">
+                    <form class="ajax-cart-form m-0" data-url="/Cart/Update">
+                        <input type="hidden" name="CartID" value="@cartItem.CartID" />
+                        <input type="hidden" name="Quantity" value="@(cartItem.Quantity - 1)" />
+                        <button type="submit" class="btn btn-sm btn-white border shadow-sm fw-bold px-3">-</button>
+                    </form>
+                    <span class="fw-bold text-dark px-2">@cartItem.Quantity</span>
+                    <form class="ajax-cart-form m-0" data-url="/Cart/Update">
+                        <input type="hidden" name="CartID" value="@cartItem.CartID" />
+                        <input type="hidden" name="Quantity" value="@(cartItem.Quantity + 1)" />
+                        <button type="submit" class="btn btn-sm btn-white border shadow-sm fw-bold px-3">+</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <form class="ajax-cart-form m-0" data-url="/Cart/AddToCart">
+                    <input type="hidden" name="productId" value="@Model.ProductID" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <button type="submit" class="btn btn-dark w-100 rounded-3 fw-bold py-2.5 shadow-sm" style="font-size: 14px; background: #000000;">Buy Now</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

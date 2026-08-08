@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Contact Us";
+    Layout = "_StoreLayout";
+}
+
+<style>
+    .page-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding-left: clamp(1rem, 3vw, 3rem);
+        padding-right: clamp(1rem, 3vw, 3rem);
+    }
+    .contact-info-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 2.5rem;
+    }
+    .contact-form-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .contact-item-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f172a;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    .social-btn-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .social-btn-circle:hover {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+</style>
+
+<div class="page-container py-4">
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-4">
+        <div class="crumbs" style="font-size: 13px; color: #64748b;">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Home</a>
+            <i class="fas fa-chevron-right mx-2" style="font-size: 10px;"></i>
+            <span class="fw-bold text-dark">Contact Us</span>
+        </div>
+    </nav>
+
+    @* Hero Header *@
+    <div class="mb-5">
+        <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-bold text-uppercase px-3 py-1 mb-2" style="font-size: 11px;">Get in Touch</span>
+        <h1 class="fw-extrabold text-dark mb-2" style="font-size: 2.25rem; letter-spacing: -0.5px;">Contact Us</h1>
+        <p class="text-muted mb-0" style="font-size: 15px; max-width: 600px;">
+            Questions about an order, a product, or a return? Send us a message — we usually reply within 24 hours.
+        </p>
+    </div>
+
+    <div class="row g-4 g-lg-5 align-items-start">
+        @* ---- LEFT INFO SIDE ---- *@
+        <div class="col-lg-5">
+            <div class="contact-info-card d-flex flex-column justify-content-between h-100">
+                <div>
+                    <h3 class="h5 fw-extrabold text-dark mb-4">Contact Information</h3>
+
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="contact-item-badge shadow-sm">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 11px; letter-spacing: 0.5px;">Email Support</span>
+                            <a href="mailto:trendykart.app@gmail.com" class="fw-bold text-dark text-decoration-none" style="font-size: 15px;">trendykart.app@gmail.com</a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="contact-item-badge shadow-sm">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 11px; letter-spacing: 0.5px;">Phone</span>
+                            <a href="tel:+911800123456" class="fw-bold text-dark text-decoration-none" style="font-size: 15px;">+91 1800 123 456</a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="contact-item-badge shadow-sm">
+                            <i class="fas fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 11px; letter-spacing: 0.5px;">Store &amp; HQ Address</span>
+                            <span class="fw-bold text-dark d-block" style="font-size: 15px;">Portland, OR — Mon to Sat, 9am–7pm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top">
+                    <span class="text-uppercase text-muted fw-bold d-block mb-3" style="font-size: 11px; letter-spacing: 0.5px;">Connect With Us</span>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="social-btn-circle"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-btn-circle"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-btn-circle"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" class="social-btn-circle"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ---- RIGHT FORM SIDE ---- *@
+        <div class="col-lg-7">
+            <div class="contact-form-card">
+                <h3 class="h5 fw-extrabold text-dark mb-4">Send Us a Message</h3>
+
+                @if (TempData["ContactSent"] != null)
+                {
+                    <div class="alert alert-success border-0 bg-success-subtle text-success rounded-3 p-3 mb-4 fw-semibold small">
+                        <i class="fas fa-circle-check me-2"></i> @TempData["ContactSent"]
+                    </div>
+                }
+
+                <form method="post" asp-action="Contact">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Your Name</label>
+                        <input type="text" name="name" required placeholder="John Doe" class="form-control rounded-3 py-2.5 px-3" style="font-size: 14px;" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Email Address</label>
+                        <input type="email" name="email" required placeholder="you@example.com" class="form-control rounded-3 py-2.5 px-3" style="font-size: 14px;" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Message</label>
+                        <textarea name="message" rows="4" required placeholder="How can we help you today?" class="form-control rounded-3 py-2.5 px-3" style="font-size: 14px;"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark btn-lg w-100 rounded-3 fw-bold py-3 shadow-sm" style="font-size: 14px;">
+                        <i class="fas fa-paper-plane me-2"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
