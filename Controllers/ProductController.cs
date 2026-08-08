@@ -239,6 +239,32 @@ namespace TrendyKart.Controllers
                                 ?? product.Variants.FirstOrDefault();
             }
 
+            // Ensure every variant has Storage, RAM and ImageUrl populated
+            foreach (var v in product.Variants)
+            {
+                if (string.IsNullOrEmpty(v.Storage) && !string.IsNullOrEmpty(v.VariantName))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(v.VariantName, @"\b(128GB|256GB|512GB|1TB|2TB|64GB|32GB|16GB)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (match.Success) v.Storage = match.Value.ToUpper();
+                }
+                if (string.IsNullOrEmpty(v.ImageUrl))
+                {
+                    if (!string.IsNullOrEmpty(v.ColorName))
+                    {
+                        if (v.ColorName.Contains("Black", StringComparison.OrdinalIgnoreCase)) v.ImageUrl = "/uploads/products/iphone17_black.png";
+                        else if (v.ColorName.Contains("White", StringComparison.OrdinalIgnoreCase)) v.ImageUrl = "/uploads/products/iphone17_white.png";
+                        else if (v.ColorName.Contains("Natural", StringComparison.OrdinalIgnoreCase)) v.ImageUrl = "/uploads/products/iphone17_natural.png";
+                        else if (v.ColorName.Contains("Blue", StringComparison.OrdinalIgnoreCase)) v.ImageUrl = "/uploads/products/iphone17_blue.png";
+                        else if (v.ColorName.Contains("Gold", StringComparison.OrdinalIgnoreCase)) v.ImageUrl = "/uploads/products/iphone17_gold.png";
+                        else v.ImageUrl = product.ImageUrl;
+                    }
+                    else
+                    {
+                        v.ImageUrl = product.ImageUrl;
+                    }
+                }
+            }
+
             ViewBag.ActiveVariant = activeVariant;
 
             // Extract unique variant attribute matrices (Colors, Storage, RAM)

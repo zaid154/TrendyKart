@@ -197,11 +197,11 @@ namespace TrendyKart.Services
                     }),
                     Variants = new List<ProductVariant>
                     {
-                        new ProductVariant { VariantName = "256GB / 12GB RAM - Titanium Black", SKU = "IP17PM-256-BLK", Price = 144900, OldPrice = 154900, Stock = 15, IsDefault = true, ColorName = "Titanium Black", ColorHex = "#1C1B1B" },
-                        new ProductVariant { VariantName = "256GB / 12GB RAM - Titanium White", SKU = "IP17PM-256-WHT", Price = 144900, OldPrice = 154900, Stock = 10, ColorName = "Titanium White", ColorHex = "#F0F0F0" },
-                        new ProductVariant { VariantName = "512GB / 16GB RAM - Natural Titanium", SKU = "IP17PM-512-NAT", Price = 164900, OldPrice = 174900, Stock = 12, ColorName = "Natural Titanium", ColorHex = "#B8B5AD" },
-                        new ProductVariant { VariantName = "512GB / 16GB RAM - Titanium Blue", SKU = "IP17PM-512-BLU", Price = 164900, OldPrice = 174900, Stock = 8, ColorName = "Titanium Blue", ColorHex = "#283845" },
-                        new ProductVariant { VariantName = "1TB / 16GB RAM - Titanium Gold", SKU = "IP17PM-1TB-GLD", Price = 184900, OldPrice = 194900, Stock = 5, ColorName = "Titanium Gold", ColorHex = "#E5C158" }
+                        new ProductVariant { VariantName = "256GB / 12GB RAM - Titanium Black", SKU = "IP17PM-256-BLK", Price = 144900, OldPrice = 154900, Stock = 15, IsDefault = true, ColorName = "Titanium Black", ColorHex = "#1C1B1B", Storage = "256GB", RAM = "12GB", ImageUrl = "/uploads/products/iphone17_black.png" },
+                        new ProductVariant { VariantName = "256GB / 12GB RAM - Titanium White", SKU = "IP17PM-256-WHT", Price = 144900, OldPrice = 154900, Stock = 10, ColorName = "Titanium White", ColorHex = "#F0F0F0", Storage = "256GB", RAM = "12GB", ImageUrl = "/uploads/products/iphone17_white.png" },
+                        new ProductVariant { VariantName = "512GB / 16GB RAM - Natural Titanium", SKU = "IP17PM-512-NAT", Price = 164900, OldPrice = 174900, Stock = 12, ColorName = "Natural Titanium", ColorHex = "#B8B5AD", Storage = "512GB", RAM = "16GB", ImageUrl = "/uploads/products/iphone17_natural.png" },
+                        new ProductVariant { VariantName = "512GB / 16GB RAM - Titanium Blue", SKU = "IP17PM-512-BLU", Price = 164900, OldPrice = 174900, Stock = 8, ColorName = "Titanium Blue", ColorHex = "#283845", Storage = "512GB", RAM = "16GB", ImageUrl = "/uploads/products/iphone17_blue.png" },
+                        new ProductVariant { VariantName = "1TB / 16GB RAM - Titanium Gold", SKU = "IP17PM-1TB-GLD", Price = 184900, OldPrice = 194900, Stock = 5, ColorName = "Titanium Gold", ColorHex = "#E5C158", Storage = "1TB", RAM = "16GB", ImageUrl = "/uploads/products/iphone17_gold.png" }
                     }
                 },
 

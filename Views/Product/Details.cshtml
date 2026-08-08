@@ -223,21 +223,29 @@
         <div class="col-lg-6">
             <div class="d-flex gap-3 align-items-start">
                 <div class="d-flex flex-column gap-3" id="galleryThumbList">
-                    @if (activeVariant != null && activeVariant.MediaList != null && activeVariant.MediaList.Any())
-                    {
-                        var mList = activeVariant.MediaList.OrderBy(m => m.SortOrder).Select(m => m.MediaUrl).ToList();
-                        for (int i = 0; i < mList.Count; i++)
+                    @{
+                        var activeMediaList = new List<string>();
+                        if (activeVariant != null && activeVariant.MediaList != null && activeVariant.MediaList.Any())
                         {
-                            var imgUrl = mList[i];
-                            <img src="@imgUrl" alt="View @(i+1)" class="figma-gallery-thumb @(i == 0 ? "active" : "")" onclick="switchMainImg('@imgUrl', this)" />
+                            activeMediaList = activeVariant.MediaList.OrderBy(m => m.SortOrder).Select(m => m.MediaUrl).ToList();
+                        }
+                        else if (activeVariant != null && !string.IsNullOrEmpty(activeVariant.ImageUrl))
+                        {
+                            activeMediaList.Add(activeVariant.ImageUrl);
+                        }
+                        else if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            activeMediaList.Add(Model.ImageUrl);
+                        }
+                        else
+                        {
+                            activeMediaList.Add("/uploads/products/iphone17_black.png");
                         }
                     }
-                    else
+                    @for (int i = 0; i < activeMediaList.Count; i++)
                     {
-                        <img src="/uploads/products/iphone17_black.png" alt="Black View" class="figma-gallery-thumb active" onclick="switchMainImg('/uploads/products/iphone17_black.png', this)" />
-                        <img src="/uploads/products/iphone17_natural.png" alt="Natural View" class="figma-gallery-thumb" onclick="switchMainImg('/uploads/products/iphone17_natural.png', this)" />
-                        <img src="/uploads/products/iphone17_blue.png" alt="Blue View" class="figma-gallery-thumb" onclick="switchMainImg('/uploads/products/iphone17_blue.png', this)" />
-                        <img src="/uploads/products/iphone17_gold.png" alt="Gold View" class="figma-gallery-thumb" onclick="switchMainImg('/uploads/products/iphone17_gold.png', this)" />
+                        var imgUrl = activeMediaList[i];
+                        <img src="@imgUrl" alt="View @(i+1)" class="figma-gallery-thumb @(i == 0 ? "active" : "")" onclick="switchMainImg('@imgUrl', this)" />
                     }
                 </div>
                 <div class="figma-main-img-box flex-grow-1">
@@ -605,18 +613,24 @@
 
 @section Scripts {
 @{
-    var variantsJsonData = JsonSerializer.Serialize(Model.Variants.Where(v => v.IsActive).Select(v => new {
-        variantId = v.VariantID,
-        variantName = v.VariantName,
-        colorName = v.ColorName,
-        colorHex = v.ColorHex,
-        storage = v.Storage,
-        price = (int)v.Price,
-        oldPrice = v.OldPrice.HasValue ? (int?)v.OldPrice.Value : null,
-        stock = v.AvailableStock,
-        sku = v.SKU,
-        imageUrl = (!string.IsNullOrEmpty(v.ImageUrl) ? v.ImageUrl : (v.MediaList != null && v.MediaList.Any() ? v.MediaList.First().MediaUrl : Model.ImageUrl)) ?? "/uploads/products/iphone17_black.png",
-        mediaFiles = v.MediaList != null && v.MediaList.Any() ? v.MediaList.OrderBy(m => m.SortOrder).Select(m => m.MediaUrl).ToList() : new List<string> { (!string.IsNullOrEmpty(v.ImageUrl) ? v.ImageUrl : Model.ImageUrl) ?? "/uploads/products/iphone17_black.png" }
+    var variantsJsonData = JsonSerializer.Serialize(Model.Variants.Where(v => v.IsActive).Select(v => {
+        var vStorage = !string.IsNullOrEmpty(v.Storage) ? v.Storage : (System.Text.RegularExpressions.Regex.Match(v.VariantName ?? "", @"\b(128GB|256GB|512GB|1TB|2TB|64GB|32GB|16GB)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Value.ToUpper());
+        var vImg = !string.IsNullOrEmpty(v.ImageUrl) ? v.ImageUrl : (v.MediaList != null && v.MediaList.Any() ? v.MediaList.First().MediaUrl : Model.ImageUrl);
+        return new {
+            variantId = v.VariantID,
+            variantName = v.VariantName,
+            colorName = v.ColorName,
+            colorHex = v.ColorHex,
+            storage = string.IsNullOrEmpty(vStorage) ? "256GB" : vStorage,
+            price = (int)v.Price,
+            oldPrice = v.OldPrice.HasValue ? (int?)v.OldPrice.Value : null,
+            stock = v.AvailableStock,
+            sku = v.SKU,
+            imageUrl = vImg ?? "/uploads/products/iphone17_black.png",
+            mediaFiles = v.MediaList != null && v.MediaList.Any() 
+                ? v.MediaList.OrderBy(m => m.SortOrder).Select(m => m.MediaUrl).ToList() 
+                : new List<string> { vImg ?? "/uploads/products/iphone17_black.png" }
+        };
     }));
 }
 <script>
@@ -647,8 +661,7 @@
     function selectStorageDemo(storageLabel, priceVal, el) {
         document.querySelectorAll('.figma-storage-chip').forEach(c => c.classList.remove('active'));
         if (el) el.classList.add('active');
-        const priceEl = document.getElementById('displayPriceText');
-        if (priceEl) priceEl.innerText = '$' + priceVal;
+        updateSelectedVariant(null, storageLabel);
     }
 
     function updateSelectedVariant(color, storage) {
@@ -694,18 +707,16 @@
             titleEl.innerText = '@Model.Name (' + matched.variantName + ')';
         }
         
-        // 4. Update Main Image & Gallery Thumbnails
-        if (matched.imageUrl) {
-            switchMainImg(matched.imageUrl, null);
-        }
+        // 4. Update Main Image & Gallery Thumbnails (ONLY for selected variant)
+        const varImages = (matched.mediaFiles && matched.mediaFiles.length) ? matched.mediaFiles : [matched.imageUrl];
         
-        if (matched.mediaFiles && matched.mediaFiles.length) {
-            const thumbList = document.getElementById('galleryThumbList');
-            if (thumbList) {
-                thumbList.innerHTML = matched.mediaFiles.map((m, idx) => 
-                    `<img src="${m}" alt="Thumb ${idx+1}" class="figma-gallery-thumb ${idx===0?'active':''}" onclick="switchMainImg('${m}', this)" />`
-                ).join('');
-            }
+        switchMainImg(varImages[0], null);
+        
+        const thumbList = document.getElementById('galleryThumbList');
+        if (thumbList && varImages.length) {
+            thumbList.innerHTML = varImages.map((m, idx) => 
+                `<img src="${m}" alt="Thumb ${idx+1}" class="figma-gallery-thumb ${idx===0?'active':''}" onclick="switchMainImg('${m}', this)" />`
+            ).join('');
         }
         
         // 5. Update Color & Storage Active Classes
